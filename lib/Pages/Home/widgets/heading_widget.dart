@@ -18,11 +18,7 @@ class HeadingWidget extends StatelessWidget {
         padding: padding,
         child: Text(
           title,
-          style: TextStyle(
-            fontSize: 22, // Prominent heading size
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).textTheme.titleLarge?.color ?? Colors.black87,
-          ),
+          style: Theme.of(context).textTheme.headlineMedium
         ),
       ),
     );

@@ -42,6 +42,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     // Access the provider
     // Using context.watch() makes this widget rebuild when NewsProvider notifies listeners
     final newsProvider = context.watch<NewsProvider>();
@@ -61,11 +63,46 @@ class _HomePageState extends State<HomePage> {
             floating: false,
             pinned: false,
             snap: false,
-            title: Greetings(), // Assumed to be stateless or managed independently
-            // Add background color or flexible space if desired
-            // flexibleSpace: FlexibleSpaceBar(title: Text("News App")),
+            // title: Row(
+            //   children: [
+            //     Image.asset(
+            //       "logoAssetPath",
+            //       width: 20,
+            //       height: 20,
+            //       errorBuilder: (context, error, stackTrace) {
+            //         return Container(
+            //           width: 20,
+            //           height: 20,
+            //           decoration: BoxDecoration(
+            //             color: isDark ? Colors.grey[700] : Colors.grey[300],
+            //             borderRadius: BorderRadius.circular(4),
+            //           ),
+            //           child: Icon(
+            //             Icons.apps,
+            //             size: 12,
+            //             color: isDark ? Colors.grey[400] : Colors.grey[600],
+            //           ),
+            //         );
+            //       },
+            //     ),
+            //     const SizedBox(width: 12),
+            //     Text(
+            //       "appName",
+            //       style: theme.textTheme.headlineLarge?.copyWith(
+            //         color: isDark ? Colors.white : Colors.black,
+            //         fontWeight: FontWeight.w700,
+            //         letterSpacing: 0.8,
+            //       ),
+            //     ),
+            //   ],
+            // ),
+              title: GreetingVariant1(logoAssetPath: "logoAssetPath"),
+
           ),),
           // START: Put your Carousel Widget here (remains the same or similar)
+          // SliverToBoxAdapter(
+          //   child: GreetingVariant2(),
+          // ),
           const CarouselWidget(), // Keep this simple or manage its state separately
           // END: Put your Carousel Widget here
 

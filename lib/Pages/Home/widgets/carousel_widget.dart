@@ -24,16 +24,14 @@ class _CarouselWidgetState extends State<CarouselWidget> {
     return SliverToBoxAdapter(
       child: Container(
         height: 280.0,
-        margin: const EdgeInsets.symmetric(vertical: 16.0),
+        margin: const EdgeInsets.symmetric(horizontal:12, vertical: 16.0),
         child: CarouselView.weighted(
+
           itemSnapping: true,
-          flexWeights: const <int>[2, 9, 2],
+
+          flexWeights: const <int>[5,1],
           children: featuredArticles.map((article) {
-            return Card(
-              clipBehavior: Clip.antiAlias,
-              elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              child: Stack(
+            return Stack(
                 fit: StackFit.expand,
                 children: [
                   Image.network(
@@ -45,32 +43,67 @@ class _CarouselWidgetState extends State<CarouselWidget> {
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.black.withOpacity(0.6), Colors.transparent],
+                        colors: [Colors.black.withValues(alpha: 0.6), Colors.transparent],
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
-                        stops: const [0.0, 0.5],
+                        stops: const [0.0, 0.4],
                       ),
                     ),
                   ),
-                  Positioned(
-                    bottom: 8,
-                    left: 8,
-                    right: 8,
-                    child: Text(
-                      article.title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        shadows: [Shadow(blurRadius: 1.0, color: Colors.black45)],
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
+                  Positioned.fill(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        // Calculate opacity based on width - smooth transition
+                        double minWidth = 50; // Width at which text starts fading
+                        double maxWidth = 250; // Width at which text is fully visible
+                        double opacity = ((constraints.maxWidth - minWidth) / (maxWidth - minWidth))
+                            .clamp(0.0, 1.0);
+
+                        return Stack(
+                          children: [
+                            if (opacity > 0) // Only render when there's some opacity
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                height: constraints.maxHeight * 0.25,
+                                child: Opacity(
+                                  opacity: opacity,
+                                  child: Container(
+                                    padding: EdgeInsets.all(constraints.maxWidth * 0.035),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent],
+                                        begin: Alignment.bottomCenter,
+                                        end: Alignment.topCenter,
+                                      ),
+                                    ),
+                                    child: Align(
+                                      alignment: Alignment.bottomCenter,
+                                      child: Text(
+                                        article.title,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: (constraints.maxWidth * 0.060),
+                                          fontWeight: FontWeight.bold,
+                                          //shadows: const [Shadow(blurRadius: 1.0, color: Colors.black45)],
+                                          height: 1.2,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ],
-              ),
+
             );
           }).toList(),
         ),

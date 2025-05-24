@@ -70,10 +70,7 @@ class NewsListItemWidget extends StatelessWidget {
                   children: [
                     Text(
                       article.title,
-                      style: const TextStyle(
-                        fontSize: 18, // Slightly adjusted
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context).textTheme.headlineSmall,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -83,10 +80,7 @@ class NewsListItemWidget extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: Text(
                           article.shortDescription!,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade400,
-                          ),
+                          style: Theme.of(context).textTheme.labelLarge,
                           maxLines: 2, // Adjust as needed
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -96,20 +90,13 @@ class NewsListItemWidget extends StatelessWidget {
                       children: [
                         Text(
                           article.author,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade500,
-                            fontStyle: FontStyle.italic,
-                          ),
+                          style: Theme.of(context).textTheme.labelMedium
                         ),
                         Text(
                           DateFormat.yMMMd().format(
                             article.date,
                           ), // e.g., Jan 23, 2024
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade500,
-                          ),
+                          style: Theme.of(context).textTheme.labelMedium
                         ),
                       ],
                     ),

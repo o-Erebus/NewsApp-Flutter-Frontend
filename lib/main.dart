@@ -1,7 +1,12 @@
+import 'dart:io';
+
 import 'package:finalyear/Providers/news_provider.dart';
 import 'package:finalyear/greetings.dart';
 import 'package:finalyear/nav_bar.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_displaymode/flutter_displaymode.dart';
 
 import 'package:provider/provider.dart';
 
@@ -10,9 +15,16 @@ import 'Pages/podcastpage.dart';
 import 'Pages/profilepage.dart';
 import 'Providers/navigation_provider.dart';
 import 'Pages/Home/homepage.dart';
+import 'Theme/theme_data.dart';
 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-void main() {
+  // Set high refresh rate
+  if (!kIsWeb && Platform.isAndroid) {
+    await FlutterDisplayMode.setHighRefreshRate();
+  }
+
   runApp(
     MultiProvider(
       providers: [
@@ -20,12 +32,15 @@ void main() {
         ChangeNotifierProvider(create: (_) => NewsProvider())
       ],
       child: MaterialApp(
-        theme: ThemeData.dark(useMaterial3: true),
+        debugShowCheckedModeBanner: false,
+        theme: NewsAppTheme.darkTheme,
         home: MyApp(),
       ),
     ),
   );
 }
+
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -43,10 +58,12 @@ class MyApp extends StatelessWidget {
       child: Scaffold(
         body: Stack(
           children: [
-            Positioned.fill(child: pages[selectedIndex]),
+            Positioned.fill(child:  IndexedStack(
+              index: selectedIndex,
+              children: pages, // Use the list of pages
+            ),),
             Align(
               alignment: Alignment.bottomCenter,
-
               child: Padding(
                 padding: EdgeInsets.only(bottom: 15),
                 child: FloatingNavbar(pages: pages),
