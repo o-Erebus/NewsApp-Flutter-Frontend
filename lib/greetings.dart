@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 class Greetings extends StatelessWidget {
   const Greetings({super.key});
@@ -16,6 +17,17 @@ class Greetings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final greeting = getGreetings();
-    return Text(greeting);
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 16.0),
+      child: Text(
+        greeting,
+        style: TextStyle(
+          fontSize: 22, // Prominent heading size
+          fontWeight: FontWeight.bold,
+          color:
+              Theme.of(context).textTheme.titleLarge?.color ?? Colors.black87,
+        ),
+      ),
+    );
   }
 }

@@ -51,14 +51,20 @@ class _HomePageState extends State<HomePage> {
       body: CustomScrollView(
         controller: _scrollController,
         slivers: <Widget>[
-          SliverAppBar(
+          SliverPadding(
+            padding: const EdgeInsets.only(top: 12),
+            sliver: SliverAppBar(
+
+            forceMaterialTransparency: true,
+
+
             floating: false,
             pinned: false,
             snap: false,
             title: Greetings(), // Assumed to be stateless or managed independently
             // Add background color or flexible space if desired
             // flexibleSpace: FlexibleSpaceBar(title: Text("News App")),
-          ),
+          ),),
           // START: Put your Carousel Widget here (remains the same or similar)
           const CarouselWidget(), // Keep this simple or manage its state separately
           // END: Put your Carousel Widget here
