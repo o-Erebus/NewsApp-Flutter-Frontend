@@ -112,7 +112,6 @@ class GreetingVariant2 extends StatelessWidget {
   Widget build(BuildContext context) {
     final greetingData = getGreetingData();
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),

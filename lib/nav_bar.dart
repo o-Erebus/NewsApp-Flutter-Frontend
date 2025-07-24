@@ -22,20 +22,20 @@ class FloatingNavbar extends StatelessWidget {
         borderRadius: BorderRadius.circular(40),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: .3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: GNav(
-        rippleColor: theme.colorScheme.onSurface.withOpacity(0.1),
-        hoverColor: theme.colorScheme.onSurface.withOpacity(0.1),
+        rippleColor: theme.colorScheme.onSurface.withValues(alpha: .1),
+        hoverColor: theme.colorScheme.onSurface.withValues(alpha: .1),
         gap: 8,
         iconSize: 24,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         duration: const Duration(milliseconds: 400),
-        tabBackgroundColor: theme.colorScheme.surfaceVariant, // Card surface color
+        tabBackgroundColor: theme.colorScheme.surfaceContainerHighest, // Card surface color
         color: theme.colorScheme.onSurfaceVariant, // Secondary text color
         activeColor: theme.colorScheme.onPrimary, // Accent color for active tab
         textStyle: TextStyle(

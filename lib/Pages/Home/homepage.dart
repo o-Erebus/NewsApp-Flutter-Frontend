@@ -42,8 +42,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    Theme.of(context);
     // Access the provider
     // Using context.watch() makes this widget rebuild when NewsProvider notifies listeners
     final newsProvider = context.watch<NewsProvider>();

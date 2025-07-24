@@ -1,11 +1,7 @@
-import 'dart:io';
 
 import 'package:finalyear/Providers/news_provider.dart';
-import 'package:finalyear/greetings.dart';
 import 'package:finalyear/nav_bar.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 
 import 'package:provider/provider.dart';
@@ -19,11 +15,10 @@ import 'Theme/theme_data.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  var modes = await FlutterDisplayMode.preferred;
   // Set high refresh rate
-  if (!kIsWeb && Platform.isAndroid) {
-    await FlutterDisplayMode.setHighRefreshRate();
-  }
+  await FlutterDisplayMode.setPreferredMode(modes);
+
 
   runApp(
     MultiProvider(

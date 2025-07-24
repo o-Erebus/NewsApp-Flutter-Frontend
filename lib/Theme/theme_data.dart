@@ -27,12 +27,10 @@ class NewsAppTheme {
         onSecondary: _primaryText,
         surface: _surface,
         onSurface: _primaryText,
-        background: _background,
-        onBackground: _primaryText,
         error: _accent,
         onError: _primaryText,
         outline: _border,
-        surfaceVariant: _cardSurface,
+        surfaceContainerHighest: _cardSurface,
         onSurfaceVariant: _secondaryText,
       ),
 
@@ -193,7 +191,7 @@ class NewsAppTheme {
         backgroundColor: _surface,
         labelStyle: const TextStyle(color: _primaryText),
         secondaryLabelStyle: const TextStyle(color: _secondaryText),
-        selectedColor: _accent.withOpacity(0.2),
+        selectedColor: _accent.withValues(alpha: .2),
         side: const BorderSide(color: _border),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
