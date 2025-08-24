@@ -36,11 +36,17 @@ dependencies:
   cupertino_icons: ^1.0.8
   get: ^4.7.2
   provider: ^6.1.5
-  google_nav_bar: ^5.0.7
   uuid: ^4.5.1
   intl: ^0.20.2
   flutter_displaymode: ^0.6.0
   http: ^1.4.0
+  firebase_core: ^4.0.0
+  firebase_auth: ^6.0.1
+  infinite_scroll_pagination: ^5.1.0
+  shared_preferences: ^2.3.4
+  top_snackbar_flutter: ^3.3.0
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:

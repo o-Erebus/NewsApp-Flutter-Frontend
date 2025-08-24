@@ -2,11 +2,14 @@
 import 'package:finalyear/Pages/Home/widgets/carousel_widget.dart';
 import 'package:finalyear/Pages/Home/widgets/heading_widget.dart';
 import 'package:finalyear/Pages/Home/widgets/news_list_item_widget.dart';
+import 'package:finalyear/Pages/Home/widgets/category_pills_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:provider/provider.dart';
 
 import '../../Providers/news_provider.dart';
 import '../../greetings.dart';
+import '../../Models/news_article.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,149 +19,150 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final ScrollController _scrollController = ScrollController();
-
   @override
   void initState() {
     super.initState();
-    // Optionally, you can listen to scroll events for more complex "load more" logic
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 200) { // Load more when 200px from bottom
-        // Debounce or add isLoading check here if needed
-        final newsProvider = Provider.of<NewsProvider>(context, listen: false);
-        if (!newsProvider.isLoading && newsProvider.hasMore) {
-          newsProvider.fetchArticles(isLoadMore: true);
-        }
-      }
-    });
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    Theme.of(context);
+    final theme = Theme.of(context);
     // Access the provider
-    // Using context.watch() makes this widget rebuild when NewsProvider notifies listeners
     final newsProvider = context.watch<NewsProvider>();
-    final articles = newsProvider.articles;
 
     return Scaffold(
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: <Widget>[
-          SliverPadding(
-            padding: const EdgeInsets.only(top: 12),
-            sliver: SliverAppBar(
-
-            forceMaterialTransparency: true,
-
-
-            floating: false,
-            pinned: false,
-            snap: false,
-            // title: Row(
-            //   children: [
-            //     Image.asset(
-            //       "logoAssetPath",
-            //       width: 20,
-            //       height: 20,
-            //       errorBuilder: (context, error, stackTrace) {
-            //         return Container(
-            //           width: 20,
-            //           height: 20,
-            //           decoration: BoxDecoration(
-            //             color: isDark ? Colors.grey[700] : Colors.grey[300],
-            //             borderRadius: BorderRadius.circular(4),
-            //           ),
-            //           child: Icon(
-            //             Icons.apps,
-            //             size: 12,
-            //             color: isDark ? Colors.grey[400] : Colors.grey[600],
-            //           ),
-            //         );
-            //       },
-            //     ),
-            //     const SizedBox(width: 12),
-            //     Text(
-            //       "appName",
-            //       style: theme.textTheme.headlineLarge?.copyWith(
-            //         color: isDark ? Colors.white : Colors.black,
-            //         fontWeight: FontWeight.w700,
-            //         letterSpacing: 0.8,
-            //       ),
-            //     ),
-            //   ],
-            // ),
-              title: GreetingVariant1(logoAssetPath: "logoAssetPath"),
-
-          ),),
-          // START: Put your Carousel Widget here (remains the same or similar)
-          // SliverToBoxAdapter(
-          //   child: GreetingVariant2(),
-          // ),
-          const CarouselWidget(), // Keep this simple or manage its state separately
-          // END: Put your Carousel Widget here
-
-          const HeadingWidget(title: "Top Headlines"), // Keep this simple
-
-          // START: Infinite Scroll List using Provider
-          if (articles.isEmpty && newsProvider.isLoading)
-            const SliverFillRemaining( // Show loading indicator if initial load and empty
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (articles.isEmpty && !newsProvider.isLoading)
-            SliverFillRemaining( // Show message if no articles and not loading
-              child: Center(child: Text("No articles found. Pull to refresh.", style: TextStyle(fontSize: 16, color: Colors.grey[600]))),
-            )
-          else
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                    (BuildContext context, int index) {
-                  // Logic for loading more items as user scrolls to the end
-                  // This is an alternative or complementary to ScrollController listener
-                  // if (index >= articles.length - 2 && !newsProvider.isLoading && newsProvider.hasMore) {
-                  //   // Use WidgetsBinding.instance.addPostFrameCallback to avoid build-time state changes
-                  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-                  //      Provider.of<NewsProvider>(context, listen: false).fetchArticles(isLoadMore: true);
-                  //   });
-                  // }
-
-                  if (index < articles.length) {
-                    final article = articles[index];
-                    return NewsListItemWidget(article: article);
-                  } else if (newsProvider.hasMore) {
-                    // Show a loading indicator at the bottom of the list
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 32.0),
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  } else {
-                    // Optional: Show "No more articles" message
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 32.0),
-                      child: Center(child: Text("You've reached the end!", style: TextStyle(color: Colors.grey[600]))),
-                    );
-                  }
-                },
-                // Add 1 to childCount if there are more items to load (for the loading indicator)
-                // or if we want to show an "end of list" message
-                childCount: articles.length + (newsProvider.hasMore || (articles.isNotEmpty && !newsProvider.hasMore) ? 1 : 0),
+      body: RefreshIndicator(
+        onRefresh: () => newsProvider.fetchArticles(),
+        child: CustomScrollView(
+          slivers: <Widget>[
+            SliverPadding(
+              padding: const EdgeInsets.only(top: 12),
+              sliver: SliverAppBar(
+                forceMaterialTransparency: true,
+                floating: false,
+                pinned: false,
+                snap: false,
+                title: GreetingVariant1(logoAssetPath: "logoAssetPath"),
               ),
             ),
-          // END: Infinite Scroll List Widget/Logic here
-        ],
+            // START: Put your Carousel Widget here (remains the same or similar)
+            const CarouselWidget(), // Keep this simple or manage its state separately
+            // END: Put your Carousel Widget here
+            const HeadingWidget(title: "Top Headlines"), // Keep this simple
+            // Add the category pills widget
+            CategoryPillsWidget(
+              onCategorySelected: (category) {
+                // Use read to avoid rebuilding the widget when provider changes
+                context.read<NewsProvider>().selectCategory(category);
+              },
+            ),
+            // START: Infinite Scroll List using infinite_scroll_pagination
+            PagingListener(
+              controller: newsProvider.pagingController,
+              builder: (context, state, fetchNextPage) =>
+                  PagedSliverList<int, NewsArticle>.separated(
+                    state: state,
+                    fetchNextPage: fetchNextPage,
+                    builderDelegate: PagedChildBuilderDelegate<NewsArticle>(
+                      itemBuilder: (context, item, index) =>
+                          NewsListItemWidget(article: item),
+                      firstPageErrorIndicatorBuilder: (_) =>
+                          _buildErrorIndicator(context, state.error),
+                      newPageErrorIndicatorBuilder: (_) =>
+                          _buildErrorIndicator(context, state.error),
+                      firstPageProgressIndicatorBuilder: (_) =>
+                          const Center(child: CircularProgressIndicator()),
+                      newPageProgressIndicatorBuilder: (_) => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 32.0),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                      noItemsFoundIndicatorBuilder: (_) =>
+                          _buildNoArticlesIndicator(theme),
+                      noMoreItemsIndicatorBuilder: (_) =>
+                          _buildEndOfListIndicator(theme),
+                    ),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox.shrink(),
+                  ),
+            ),
+            // END: Infinite Scroll List Widget/Logic here
+          ],
+        ),
       ),
       // Optional: Add a FloatingActionButton for manual refresh
       // floatingActionButton: FloatingActionButton(
       //   onPressed: () => newsProvider.fetchArticles(),
       //   child: Icon(Icons.refresh),
       // ),
+    );
+  }
+
+  Widget _buildErrorIndicator(BuildContext context, dynamic error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, size: 48, color: Colors.red),
+          const SizedBox(height: 16),
+          const Text(
+            'Something went wrong!',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            error?.toString() ?? 'Unknown error',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.grey),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              final newsProvider = context.read<NewsProvider>();
+              newsProvider.pagingController.refresh();
+            },
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoArticlesIndicator(ThemeData theme) {
+    return SliverFillRemaining(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.article_outlined, size: 48, color: Colors.grey),
+            const SizedBox(height: 16),
+            Text(
+              "No articles found.",
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEndOfListIndicator(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32.0),
+      child: Center(
+        child: Text(
+          "You've reached the end!",
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
     );
   }
 }

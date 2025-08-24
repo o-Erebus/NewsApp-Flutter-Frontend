@@ -1,41 +1,47 @@
-
 import 'package:finalyear/Providers/news_provider.dart';
 import 'package:finalyear/nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
-
 import 'package:provider/provider.dart';
-
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'Pages/globalpage.dart';
 import 'Pages/podcastpage.dart';
-import 'Pages/profilepage.dart';
+import 'Pages/Profile/profilepage.dart';
 import 'Providers/navigation_provider.dart';
+import 'Providers/auth_provider.dart';
 import 'Pages/Home/homepage.dart';
-import 'Theme/theme_data.dart';
+import 'theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   var modes = await FlutterDisplayMode.preferred;
   // Set high refresh rate
   await FlutterDisplayMode.setPreferredMode(modes);
 
+  // Create MaterialTheme instance with default TextTheme
+  final materialTheme = MaterialTheme(ThemeData.light().textTheme);
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
-        ChangeNotifierProvider(create: (_) => NewsProvider())
+        ChangeNotifierProvider(create: (_) => NewsProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: NewsAppTheme.darkTheme,
+        theme: materialTheme.light(),
+        darkTheme: materialTheme.dark(),
+        themeMode:
+            ThemeMode.system, // Automatically switch based on system settings
         home: MyApp(),
       ),
     ),
   );
 }
-
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -53,10 +59,12 @@ class MyApp extends StatelessWidget {
       child: Scaffold(
         body: Stack(
           children: [
-            Positioned.fill(child:  IndexedStack(
-              index: selectedIndex,
-              children: pages, // Use the list of pages
-            ),),
+            Positioned.fill(
+              child: IndexedStack(
+                index: selectedIndex,
+                children: pages, // Use the list of pages
+              ),
+            ),
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(

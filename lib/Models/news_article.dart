@@ -21,24 +21,38 @@ class NewsArticle {
   });
 
   factory NewsArticle.fromJson(Map<String, dynamic> json) {
-    final rfcDateStr = json['timestamp'] ?? '';
+    final timestampStr = json['timestamp'] ?? '';
     DateTime parsedDate;
     try {
-      parsedDate = DateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", 'en_US').parseUtc(rfcDateStr);
+      // Try parsing ISO timestamp first
+      if (timestampStr.isNotEmpty) {
+        parsedDate = DateTime.parse(timestampStr);
+      } else {
+        parsedDate = DateTime.now();
+      }
     } catch (e) {
-      parsedDate = DateTime.now(); // fallback
-      print("Failed to parse date: $rfcDateStr. Error: $e");
+      // Fallback to parsing the publish_date if timestamp fails
+      try {
+        final publishDateStr = json['publish_date'] ?? '';
+        if (publishDateStr.isNotEmpty) {
+          parsedDate = DateFormat('yyyy-MM-dd').parse(publishDateStr);
+        } else {
+          parsedDate = DateTime.now();
+        }
+      } catch (e2) {
+        parsedDate = DateTime.now(); // final fallback
+        print("Failed to parse date: $timestampStr. Error: $e");
+      }
     }
-    print(json['top_image']);
+
     return NewsArticle(
-      id: json['id'] ?? UniqueKey().toString(),
+      id: json['_id'] ?? UniqueKey().toString(),
       title: json['title'] ?? '',
       imageUrl: json['top_image'] ?? '',
-      author: json['author'] ?? '',
+      author: json['authors'] ?? '',
       date: parsedDate,
       shortDescription: json['headline'] ?? '',
-      text : json['text']
+      text: json['text'] ?? '',
     );
   }
-
 }

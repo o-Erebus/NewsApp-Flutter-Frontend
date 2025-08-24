@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
+
 // VARIANT 1: [Logo] [Good Morning] [☀️] (Greeting and Emoji Right Aligned)
 class GreetingVariant1 extends StatelessWidget {
   final String logoAssetPath;
 
-  const GreetingVariant1({
-    super.key,
-    required this.logoAssetPath,
-  });
+  const GreetingVariant1({super.key, required this.logoAssetPath});
 
   Map<String, String> getGreetingData() {
     var hour = DateTime.now().hour;
@@ -34,11 +32,10 @@ class GreetingVariant1 extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.only(right: 12.0, top: 16.0,bottom: 16),
+      padding: const EdgeInsets.only(right: 12.0, top: 16.0, bottom: 16),
       child: Row(
         children: [
           // Logo on left
-
 
           // Spacer to push greeting and emoji to the right
 
@@ -53,7 +50,7 @@ class GreetingVariant1 extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             greetingData['emoji']!,
-            style: const TextStyle(fontSize: 20),
+            style: TextStyle(fontSize: 20, color: theme.colorScheme.onSurface),
           ),
           const Spacer(),
 
@@ -66,17 +63,13 @@ class GreetingVariant1 extends StatelessWidget {
                 width: 20,
                 height: 20,
                 decoration: BoxDecoration(
-                  color: theme.brightness == Brightness.dark
-                      ? Colors.grey[700]
-                      : Colors.grey[300],
+                  color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Icon(
                   Icons.apps,
                   size: 12,
-                  color: theme.brightness == Brightness.dark
-                      ? Colors.grey[400]
-                      : Colors.grey[600],
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               );
             },
@@ -89,12 +82,7 @@ class GreetingVariant1 extends StatelessWidget {
 
 // VARIANT 2: [Logo] [AppName] (top row) + [Good Morning] [☀️] (bottom row, all left aligned)
 class GreetingVariant2 extends StatelessWidget {
-
-
-  const GreetingVariant2({
-    super.key,
-
-  });
+  const GreetingVariant2({super.key});
 
   Map<String, String> getGreetingData() {
     var hour = DateTime.now().hour;
@@ -131,7 +119,10 @@ class GreetingVariant2 extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 greetingData['emoji']!,
-                style: const TextStyle(fontSize: 20),
+                style: TextStyle(
+                  fontSize: 20,
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
             ],
           ),
