@@ -1,6 +1,5 @@
 // lib/screens/home_page.dart
 import 'package:finalyear/Pages/Home/widgets/carousel_widget.dart';
-import 'package:finalyear/Pages/Home/widgets/heading_widget.dart';
 import 'package:finalyear/Pages/Home/widgets/news_list_item_widget.dart';
 import 'package:finalyear/Pages/Home/widgets/category_pills_widget.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +7,13 @@ import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:provider/provider.dart';
 
 import '../../Providers/news_provider.dart';
-import '../../greetings.dart';
 import '../../Models/news_article.dart';
+import '../_common_widgets/title_widget.dart';
+import '../_common_widgets/heading_widget.dart';
+import '../_common_widgets/greeting_logic.dart';
+import '../_common_widgets/error_indicator_widget.dart';
+import '../_common_widgets/no_articles_indicator_widget.dart';
+import '../_common_widgets/end_of_list_indicator_widget.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,6 +23,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  String _getGreetingTitle() {
+    final greetingData = GreetingLogic.getGreetingDataVariant1();
+    return '${greetingData['message']} ${greetingData['emoji']}';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -40,15 +49,10 @@ class _HomePageState extends State<HomePage> {
         onRefresh: () => newsProvider.fetchArticles(),
         child: CustomScrollView(
           slivers: <Widget>[
-            SliverPadding(
-              padding: const EdgeInsets.only(top: 12),
-              sliver: SliverAppBar(
-                forceMaterialTransparency: true,
-                floating: false,
-                pinned: false,
-                snap: false,
-                title: GreetingVariant1(logoAssetPath: "logoAssetPath"),
-              ),
+            CommonTitleWidget(
+              title: _getGreetingTitle(),
+              logoAssetPath: "logoAssetPath",
+              variant: 1,
             ),
             // START: Put your Carousel Widget here (remains the same or similar)
             const CarouselWidget(), // Keep this simple or manage its state separately
@@ -72,9 +76,20 @@ class _HomePageState extends State<HomePage> {
                       itemBuilder: (context, item, index) =>
                           NewsListItemWidget(article: item),
                       firstPageErrorIndicatorBuilder: (_) =>
-                          _buildErrorIndicator(context, state.error),
-                      newPageErrorIndicatorBuilder: (_) =>
-                          _buildErrorIndicator(context, state.error),
+                          ErrorIndicatorWidget(
+                            error: state.error,
+                            onRetry: () {
+                              final newsProvider = context.read<NewsProvider>();
+                              newsProvider.pagingController.refresh();
+                            },
+                          ),
+                      newPageErrorIndicatorBuilder: (_) => ErrorIndicatorWidget(
+                        error: state.error,
+                        onRetry: () {
+                          final newsProvider = context.read<NewsProvider>();
+                          newsProvider.pagingController.refresh();
+                        },
+                      ),
                       firstPageProgressIndicatorBuilder: (_) =>
                           const Center(child: CircularProgressIndicator()),
                       newPageProgressIndicatorBuilder: (_) => const Padding(
@@ -82,9 +97,9 @@ class _HomePageState extends State<HomePage> {
                         child: Center(child: CircularProgressIndicator()),
                       ),
                       noItemsFoundIndicatorBuilder: (_) =>
-                          _buildNoArticlesIndicator(theme),
+                          NoArticlesIndicatorWidget(theme: theme),
                       noMoreItemsIndicatorBuilder: (_) =>
-                          _buildEndOfListIndicator(theme),
+                          EndOfListIndicatorWidget(theme: theme),
                     ),
                     separatorBuilder: (context, index) =>
                         const SizedBox.shrink(),
@@ -99,70 +114,6 @@ class _HomePageState extends State<HomePage> {
       //   onPressed: () => newsProvider.fetchArticles(),
       //   child: Icon(Icons.refresh),
       // ),
-    );
-  }
-
-  Widget _buildErrorIndicator(BuildContext context, dynamic error) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, size: 48, color: Colors.red),
-          const SizedBox(height: 16),
-          const Text(
-            'Something went wrong!',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            error?.toString() ?? 'Unknown error',
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.grey),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              final newsProvider = context.read<NewsProvider>();
-              newsProvider.pagingController.refresh();
-            },
-            child: const Text('Retry'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNoArticlesIndicator(ThemeData theme) {
-    return SliverFillRemaining(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.article_outlined, size: 48, color: Colors.grey),
-            const SizedBox(height: 16),
-            Text(
-              "No articles found.",
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEndOfListIndicator(ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32.0),
-      child: Center(
-        child: Text(
-          "You've reached the end!",
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ),
     );
   }
 }

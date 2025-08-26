@@ -5,16 +5,18 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../Models/news_article.dart';
-import 'article_detail_page.dart'; // For date formatting
+import '../../_common_widgets/article_detail_page.dart'; // For date formatting
 
 class NewsListItemWidget extends StatelessWidget {
   final NewsArticle article;
   final bool isSelected;
+  final bool isGlobal;
 
   const NewsListItemWidget({
     super.key,
     required this.article,
     this.isSelected = false,
+    this.isGlobal = false,
   });
 
   @override
@@ -52,6 +54,7 @@ class NewsListItemWidget extends StatelessWidget {
                     builder: (_) => ArticleDetailPage(
                       article: article,
                       isCarouselView: false,
+                      isGlobalView: isGlobal,
                     ),
                   ),
                 );
@@ -65,7 +68,9 @@ class NewsListItemWidget extends StatelessWidget {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: Hero(
-                        tag: 'article_image_${article.id}',
+                        tag: isGlobal
+                            ? 'GLOBAL_article_image_${article.id}'
+                            : 'article_image_${article.id}',
                         child: CachedNetworkImage(
                           imageUrl: article.imageUrl,
                           fit: BoxFit.cover,
@@ -109,10 +114,7 @@ class NewsListItemWidget extends StatelessWidget {
                         children: [
                           Text(
                             article.title,
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontSize:
-                                  16, // Fixed font size to prevent overflow
-                            ),
+                            style: theme.textTheme.titleMedium,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),

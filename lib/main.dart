@@ -5,13 +5,14 @@ import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'Pages/globalpage.dart';
+import 'package:finalyear/Pages/Global/globalpage.dart';
 import 'Pages/podcastpage.dart';
 import 'Pages/Profile/profilepage.dart';
 import 'Providers/navigation_provider.dart';
 import 'Providers/auth_provider.dart';
 import 'Pages/Home/homepage.dart';
-import 'theme.dart';
+import 'Themes/theme_light.dart' as light_theme;
+import 'Themes/theme_dark.dart' as dark_theme;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,8 +22,11 @@ void main() async {
   // Set high refresh rate
   await FlutterDisplayMode.setPreferredMode(modes);
 
-  // Create MaterialTheme instance with default TextTheme
-  final materialTheme = MaterialTheme(ThemeData.light().textTheme);
+  // Create MaterialTheme instances for light and dark themes
+  final lightTheme = light_theme.MaterialTheme(ThemeData.light().textTheme);
+  final darkTheme = dark_theme.MaterialTheme(
+    ThemeData.light().textTheme,
+  ); // Using light text theme for consistency
 
   runApp(
     MultiProvider(
@@ -33,8 +37,8 @@ void main() async {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: materialTheme.light(),
-        darkTheme: materialTheme.dark(),
+        theme: lightTheme.light(),
+        darkTheme: darkTheme.dark(),
         themeMode:
             ThemeMode.system, // Automatically switch based on system settings
         home: MyApp(),

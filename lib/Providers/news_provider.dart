@@ -43,12 +43,30 @@ class NewsProvider with ChangeNotifier {
     fetchPage: (pageKey) => _fetchArticlesPage(pageKey),
   );
 
+  /// Global paging controller for fetching global articles
+  late final globalPagingController = PagingController<int, NewsArticle>(
+    getNextPageKey: (state) {
+      // This convenience getter checks if the last returned page is empty.
+      // You can replace this with a check if the last page has returned less items than expected,
+      // for a more efficient implementation.
+      if (state.lastPageIsEmpty) return null;
+      // This convenience getter increments the page key by 1, assuming keys start at 1.
+      return state.nextIntPageKey;
+    },
+    fetchPage: (pageKey) => fetchGlobalArticles(pageKey),
+  );
+
   final List<NewsArticle> _featuredArticles = [];
   final RequestHandler _requestHandler = RequestHandler();
 
   // Cache for articles by category with timestamps
   final Map<String, LinkedHashMap<int, _CachedPage>> _categoryCache = {};
   final Map<String, DateTime> _categoryLastFetch = {};
+
+  // Cache for global articles with timestamps
+  final LinkedHashMap<int, _CachedPage> _globalCache =
+      LinkedHashMap<int, _CachedPage>();
+  DateTime _globalLastFetch = DateTime.now();
 
   // Current selected category
   String _currentCategory = 'all';
@@ -70,6 +88,7 @@ class NewsProvider with ChangeNotifier {
   NewsProvider() {
     // Add listener for error handling
     _pagingController.addListener(_handleError);
+    globalPagingController.addListener(_handleError);
 
     // Initial fetch
     fetchArticles(); // This will trigger the first page load
@@ -181,6 +200,48 @@ class NewsProvider with ChangeNotifier {
     _categoryLastFetch[category] = DateTime.now();
   }
 
+  /// Check if a specific page of global articles is cached and not expired
+  bool _isGlobalCached(int pageKey) {
+    final cachedPage = _globalCache[pageKey];
+    if (cachedPage == null) return false;
+
+    // Check if cache is expired
+    if (DateTime.now().difference(cachedPage.timestamp) > _cacheMaxAge) {
+      _globalCache.remove(pageKey);
+      return false;
+    }
+
+    return true;
+  }
+
+  /// Get cached global page if available and not expired
+  _CachedPage? _getGlobalCachedPage(int pageKey) {
+    final cachedPage = _globalCache[pageKey];
+    if (cachedPage == null) return null;
+
+    // Check if cache is expired
+    if (DateTime.now().difference(cachedPage.timestamp) > _cacheMaxAge) {
+      _globalCache.remove(pageKey);
+      return null;
+    }
+
+    return cachedPage;
+  }
+
+  /// Cache a page of global articles
+  void _cacheGlobalPage(int pageKey, _CachedPage page) {
+    // Implement LRU by removing oldest entries if cache is full
+    // But don't remove the page we're about to add
+    if (_globalCache.length >= _maxCacheSize &&
+        !_globalCache.containsKey(pageKey)) {
+      final firstKey = _globalCache.keys.first;
+      _globalCache.remove(firstKey);
+    }
+
+    _globalCache[pageKey] = page;
+    _globalLastFetch = DateTime.now();
+  }
+
   /// Fetch articles for a specific category with caching
   Future<List<NewsArticle>> _fetchCategoryPage(
     String category,
@@ -238,6 +299,89 @@ class NewsProvider with ChangeNotifier {
         // Cache the page
         _cachePage(
           category,
+          pageKey,
+          _CachedPage(
+            articles: pageArticles,
+            timestamp: DateTime.now(),
+            isLastPage: isLastPage,
+          ),
+        );
+
+        // Return the filtered articles for this page
+        return pageArticles;
+      } else if (response.statusCode == 404) {
+        // Handle specific HTTP errors
+        return [];
+      } else {
+        // Handle other HTTP errors
+        throw HttpException(
+          'Server error: ${response.statusCode} - ${response.body}',
+          uri: uri,
+        );
+      }
+    } on SocketException catch (e) {
+      // Handle network connectivity issues
+      throw e;
+    } on TimeoutException catch (e) {
+      // Handle request timeouts
+      throw e;
+    } catch (error) {
+      // Handle all other errors
+      throw error;
+    }
+  }
+
+  /// Fetch global articles with caching
+  Future<List<NewsArticle>> _fetchGlobalPage(int pageKey) async {
+    // Try to get from cache first
+    final cachedPage = _getGlobalCachedPage(pageKey);
+    if (cachedPage != null) {
+      return cachedPage.articles;
+    }
+
+    try {
+      // Construct endpoint for global articles
+      final uri = Uri.https(
+        Constants.baseUrl.replaceAll('https://', ''),
+        Constants.globalArticlesEndpoint,
+        {
+          'page': pageKey.toString(),
+          'page_size': (_pageSize + _featuredArticles.length).toString(),
+        },
+      );
+
+      final response = await _requestHandler.get(uri.toString());
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> articleList = data["data"];
+
+        List<NewsArticle> fetchedArticles = articleList
+            .map((json) => NewsArticle.fromJson(json))
+            .toList();
+
+        // Filter out featured articles from the fetched list
+        final featuredIds = _getFeaturedArticleIds();
+        final filteredArticles = fetchedArticles
+            .where((article) => !featuredIds.contains(article.id))
+            .toList();
+
+        // Take only the required number of articles for this page
+        final pageArticles = filteredArticles.take(_pageSize).toList();
+
+        // Determine if this is the last page
+        final pagination = data["pagination"];
+        bool isLastPage = true;
+
+        if (pagination != null) {
+          isLastPage = pagination["page"] >= pagination["pages"];
+        } else {
+          // Fallback to the old logic if pagination info is not available
+          isLastPage = pageArticles.length < _pageSize;
+        }
+
+        // Cache the page
+        _cacheGlobalPage(
           pageKey,
           _CachedPage(
             articles: pageArticles,
@@ -391,8 +535,14 @@ class NewsProvider with ChangeNotifier {
     _pagingController.refresh();
   }
 
+  /// Fetch global articles with pagination support
+  Future<List<NewsArticle>> fetchGlobalArticles(int pageKey) async {
+    return _fetchGlobalPage(pageKey);
+  }
+
   void dispose() {
     _pagingController.dispose();
+    globalPagingController.dispose();
     _categoryChangeTimer?.cancel();
     super.dispose();
   }

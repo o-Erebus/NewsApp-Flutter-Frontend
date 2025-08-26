@@ -6,7 +6,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../../Models/news_article.dart'; // Ensure your NewsArticle has a unique ID or use imageUrl
 import '../../../Providers/news_provider.dart';
 
-import 'article_detail_page.dart'; // Ensure this path is correct
+import '../../_common_widgets/article_detail_page.dart'; // Ensure this path is correct
 // e.g., import 'package:carousel_view/carousel_view.dart';
 
 class CarouselWidget extends StatefulWidget {
@@ -53,7 +53,7 @@ class _CarouselWidgetState extends State<CarouselWidget> {
 
     return SliverToBoxAdapter(
       child: Container(
-        height: 280.0,
+        height: 300.0,
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 16.0),
         child: CarouselView.weighted(
           // Or your specific CarouselView constructor

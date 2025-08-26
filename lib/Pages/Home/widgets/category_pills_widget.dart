@@ -78,6 +78,7 @@ class _CategoryPillsWidgetState extends State<CategoryPillsWidget> {
                 },
                 selectedColor: theme.colorScheme.primary,
                 backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                checkmarkColor: isSelected ? theme.colorScheme.onPrimary : null,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20.0),
                 ),
