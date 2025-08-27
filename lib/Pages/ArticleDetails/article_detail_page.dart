@@ -27,6 +27,15 @@ class ArticleDetailPage extends StatefulWidget {
 }
 
 class _ArticleDetailPageState extends State<ArticleDetailPage> {
+  late TTSProvider _ttsProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    // Get the TTS provider instance early so we can use it in dispose
+    _ttsProvider = Provider.of<TTSProvider>(context, listen: false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -231,8 +240,11 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   @override
   void dispose() {
     // Reset TTS provider when the article detail page is closed
-    final ttsProvider = Provider.of<TTSProvider>(context, listen: false);
-    ttsProvider.reset();
+    print('ArticleDetailPage: dispose method called');
+    print('ArticleDetailPage: Calling _ttsProvider.reset()');
+    _ttsProvider.reset();
+    print('ArticleDetailPage: _ttsProvider.reset() completed');
     super.dispose();
+    print('ArticleDetailPage: dispose method completed');
   }
 }

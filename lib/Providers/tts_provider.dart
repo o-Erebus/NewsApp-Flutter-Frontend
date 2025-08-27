@@ -49,6 +49,7 @@ class TTSProvider with ChangeNotifier {
   bool get isProcessingChunks => _isProcessingChunks;
 
   TTSProvider() {
+    print("TTSProvider: Constructor called");
     _initTts();
     print("TTS Provider initialized");
   }
@@ -67,6 +68,7 @@ class TTSProvider with ChangeNotifier {
 
       // --- Set up listeners ---
       _flutterTts.setStartHandler(() {
+        print('TTSProvider: TTS started');
         _isPlaying = true;
         _isPaused = false;
         _errorMessage = null;
@@ -74,6 +76,7 @@ class TTSProvider with ChangeNotifier {
       });
 
       _flutterTts.setCompletionHandler(() {
+        print('TTSProvider: TTS completed');
         if (!_isProcessingChunks) {
           _isPlaying = false;
           _isPaused = false;
@@ -85,6 +88,7 @@ class TTSProvider with ChangeNotifier {
       });
 
       _flutterTts.setErrorHandler((msg) {
+        print('TTSProvider: TTS error: $msg');
         if (!_isProcessingChunks) {
           _isPlaying = false;
           _isPaused = false;
@@ -253,7 +257,9 @@ class TTSProvider with ChangeNotifier {
     // Check if the text has changed from the current text
     if (_currentText != text) {
       // Reset state for new text
-      reset();
+      print('TTSProvider: togglePlayPause - text changed, calling reset()');
+      await reset();
+      print('TTSProvider: togglePlayPause - reset() completed');
       _currentText = text;
     }
 
@@ -281,18 +287,28 @@ class TTSProvider with ChangeNotifier {
   }
 
   Future<void> pause() async {
-    if (!_isPlaying && !_isProcessingChunks) return;
+    print('TTSProvider: pause() called');
+    if (!_isPlaying && !_isProcessingChunks) {
+      print(
+        'TTSProvider: pause() returning early - not playing or processing chunks',
+      );
+      return;
+    }
     try {
       // Save exact pause position BEFORE stop
       if (_currentText != null) {
         _pausePosition = _totalSpokenLength + _currentUtteranceWordStart;
+        print('TTSProvider: pause position saved: $_pausePosition');
       }
 
+      print('TTSProvider: Calling _flutterTts.stop() in pause()');
       await _flutterTts.stop();
+      print('TTSProvider: _flutterTts.stop() completed in pause()');
       _isPlaying = false;
       _isPaused = true;
 
       notifyListeners();
+      print('TTSProvider: pause() completed');
     } catch (e) {
       _errorMessage = "Error pausing TTS: $e";
       print("Error pausing TTS: $e");
@@ -335,8 +351,11 @@ class TTSProvider with ChangeNotifier {
   }
 
   Future<void> stop() async {
+    print('TTSProvider: stop() called');
     try {
+      print('TTSProvider: Calling _flutterTts.stop()');
       await _flutterTts.stop();
+      print('TTSProvider: _flutterTts.stop() completed');
       _isPlaying = false;
       _isPaused = false;
       _isProcessingChunks = false;
@@ -345,6 +364,7 @@ class TTSProvider with ChangeNotifier {
       _totalSpokenLength = 0;
       _currentUtteranceWordStart = 0;
       notifyListeners();
+      print('TTSProvider: stop() completed');
     } catch (e) {
       _errorMessage = "Error stopping TTS: $e";
       print("Error stopping TTS: $e");
@@ -609,8 +629,15 @@ class TTSProvider with ChangeNotifier {
 
   /// Cancels chunked text processing
   Future<void> cancelChunkProcessing() async {
+    print('TTSProvider: cancelChunkProcessing() called');
     try {
+      print(
+        'TTSProvider: Calling _flutterTts.stop() in cancelChunkProcessing()',
+      );
       await _flutterTts.stop();
+      print(
+        'TTSProvider: _flutterTts.stop() completed in cancelChunkProcessing()',
+      );
       _isPlaying = false;
       _isPaused = false;
       _isProcessingChunks = false;
@@ -619,6 +646,7 @@ class TTSProvider with ChangeNotifier {
       _pausePosition = 0;
       _errorMessage = null;
       notifyListeners();
+      print('TTSProvider: cancelChunkProcessing() completed');
     } catch (e) {
       _errorMessage = "Error cancelling chunk processing: $e";
       print("Error cancelling chunk processing: $e");
@@ -659,7 +687,8 @@ class TTSProvider with ChangeNotifier {
   }
 
   /// Resets all TTS state variables
-  void reset() {
+  Future<void> reset() async {
+    print('TTSProvider: reset() called');
     _currentText = null;
     _textChunks = [];
     _currentChunkIndex = 0;
@@ -670,11 +699,22 @@ class TTSProvider with ChangeNotifier {
     _currentUtteranceWordStart = 0;
     _pausePosition = 0;
     _errorMessage = null;
+    print('TTSProvider: Calling _flutterTts.stop()');
+    try {
+      await _flutterTts.stop();
+      print('TTSProvider: _flutterTts.stop() completed');
+    } catch (e) {
+      print('TTSProvider: Error in _flutterTts.stop(): $e');
+    }
     notifyListeners();
+    print('TTSProvider: reset() completed');
   }
 
   void dispose() {
+    print('TTSProvider: dispose() called');
     _flutterTts.stop();
+    print('TTSProvider: _flutterTts.stop() called in dispose()');
     super.dispose();
+    print('TTSProvider: dispose() completed');
   }
 }
