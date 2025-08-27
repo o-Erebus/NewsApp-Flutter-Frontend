@@ -6,7 +6,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../../Models/news_article.dart'; // Ensure your NewsArticle has a unique ID or use imageUrl
 import '../../../Providers/news_provider.dart';
 
-import '../../_common_widgets/article_detail_page.dart'; // Ensure this path is correct
+import '../../ArticleDetails/article_detail_page.dart'; // Ensure this path is correct
 // e.g., import 'package:carousel_view/carousel_view.dart';
 
 class CarouselWidget extends StatefulWidget {

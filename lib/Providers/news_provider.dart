@@ -417,75 +417,10 @@ class NewsProvider with ChangeNotifier {
   Future<List<NewsArticle>> _fetchArticlesPage(int pageKey) async {
     if (_currentCategory == 'all') {
       // Use the original fetch method for 'all' category
-      return _fetchOriginalArticlesPage(pageKey);
+      return _fetchCategoryPage('all', pageKey);
     } else {
       // Use the category-specific fetch method
       return _fetchCategoryPage(_currentCategory, pageKey);
-    }
-  }
-
-  Future<List<NewsArticle>> _fetchOriginalArticlesPage(int pageKey) async {
-    try {
-      final uri = Uri.https(
-        Constants.baseUrl.replaceAll('https://', ''),
-        Constants.articlesEndpoint,
-        {
-          'page': pageKey.toString(),
-          'page_size': (_pageSize + _featuredArticles.length).toString(),
-        }, // Fetch extra to account for filtering
-      );
-
-      final response = await _requestHandler.get(uri.toString());
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final List<dynamic> articleList = data["data"];
-
-        List<NewsArticle> fetchedArticles = articleList
-            .map((json) => NewsArticle.fromJson(json))
-            .toList();
-
-        // Filter out featured articles from the fetched list
-        final featuredIds = _getFeaturedArticleIds();
-        final filteredArticles = fetchedArticles
-            .where((article) => !featuredIds.contains(article.id))
-            .toList();
-
-        // Take only the required number of articles for this page
-        final pageArticles = filteredArticles.take(_pageSize).toList();
-
-        // Determine if this is the last page
-        final pagination = data["pagination"];
-        bool isLastPage = true;
-
-        if (pagination != null) {
-          isLastPage = pagination["page"] >= pagination["pages"];
-        } else {
-          // Fallback to the old logic if pagination info is not available
-          isLastPage = pageArticles.length < _pageSize;
-        }
-
-        // Return the filtered articles for this page
-        return pageArticles;
-      } else if (response.statusCode == 404) {
-        // Handle specific HTTP errors
-        return [];
-      } else {
-        // Handle other HTTP errors
-        throw HttpException(
-          'Server error: ${response.statusCode} - ${response.body}',
-          uri: uri,
-        );
-      }
-    } on SocketException catch (e) {
-      // Handle network connectivity issues
-      throw e;
-    } on TimeoutException catch (e) {
-      // Handle request timeouts
-      throw e;
-    } catch (error) {
-      // Handle all other errors
-      throw error;
     }
   }
 

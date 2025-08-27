@@ -5,7 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../Models/news_article.dart';
-import '../../_common_widgets/article_detail_page.dart'; // For date formatting
+import '../../ArticleDetails/article_detail_page.dart'; // For date formatting
 
 class NewsListItemWidget extends StatelessWidget {
   final NewsArticle article;

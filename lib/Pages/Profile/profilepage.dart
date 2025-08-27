@@ -10,16 +10,27 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage> with WidgetsBindingObserver {
   final _displayNameController = TextEditingController();
+  late final FocusNode _displayNameFocusNode;
 
   @override
   void initState() {
     super.initState();
+    _displayNameFocusNode = FocusNode();
     final authProvider = context.read<AuthProvider>();
     if (authProvider.user != null) {
       _displayNameController.text = authProvider.user!.displayName ?? '';
     }
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    _displayNameController.dispose();
+    _displayNameFocusNode.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   Future<void> _updateProfile(AuthProvider authProvider) async {
@@ -43,7 +54,13 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
+    final navProvider = context.watch<NavigationProvider>();
     final theme = Theme.of(context);
+
+    // Unfocus the text field when navigating away from the profile page
+    if (navProvider.selectedIndex != 3) {
+      _displayNameFocusNode.unfocus();
+    }
 
     if (!authProvider.isAuthenticated) {
       return Center(
@@ -120,10 +137,14 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 20),
             TextField(
               controller: _displayNameController,
+              focusNode: _displayNameFocusNode,
               decoration: const InputDecoration(
                 labelText: 'Display Name',
                 border: OutlineInputBorder(),
               ),
+              onTapOutside: (event) {
+                _displayNameFocusNode.unfocus();
+              },
             ),
             const SizedBox(height: 20),
             SizedBox(

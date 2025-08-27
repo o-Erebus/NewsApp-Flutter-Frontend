@@ -6,8 +6,8 @@ import 'dart:math' show pow;
 // Providers and Pages (assuming they exist as in the original code)
 import 'Providers/navigation_provider.dart';
 import 'Providers/auth_provider.dart';
-import 'Pages/auth/login_page.dart';
-import 'Pages/auth/signup_page.dart';
+import 'Pages/Auth/login_page.dart';
+import 'Pages/Auth/signup_page.dart';
 
 //==============================================================================
 // 1. TOP-LEVEL WIDGET (Handles State and Business Logic)

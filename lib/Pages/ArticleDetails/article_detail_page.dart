@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:provider/provider.dart';
 import '../../Models/news_article.dart';
+import '../../Providers/tts_provider.dart';
+import '../../Providers/auth_provider.dart';
+import 'widgets/tts_controls_widget.dart';
 
-class ArticleDetailPage extends StatelessWidget {
+class ArticleDetailPage extends StatefulWidget {
   final NewsArticle article;
 
   final bool isCarouselView;
@@ -19,20 +23,25 @@ class ArticleDetailPage extends StatelessWidget {
   });
 
   @override
+  State<ArticleDetailPage> createState() => _ArticleDetailPageState();
+}
+
+class _ArticleDetailPageState extends State<ArticleDetailPage> {
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     var herotag = '';
-    if (isGlobalView) {
-      if (isCarouselView) {
-        herotag = 'GLOBAL_${article.imageUrl}';
+    if (widget.isGlobalView) {
+      if (widget.isCarouselView) {
+        herotag = 'GLOBAL_${widget.article.imageUrl}';
       } else {
-        herotag = 'GLOBAL_article_image_${article.id}';
+        herotag = 'GLOBAL_article_image_${widget.article.id}';
       }
     } else {
-      if (isCarouselView) {
-        herotag = article.imageUrl;
+      if (widget.isCarouselView) {
+        herotag = widget.article.imageUrl;
       } else {
-        herotag = 'article_image_${article.id}';
+        herotag = 'article_image_${widget.article.id}';
       }
     }
     return Scaffold(
@@ -42,7 +51,7 @@ class ArticleDetailPage extends StatelessWidget {
           Hero(
             tag: herotag,
             child: CachedNetworkImage(
-              imageUrl: article.imageUrl,
+              imageUrl: widget.article.imageUrl,
               height: 350,
               width: double.infinity,
               fit: BoxFit.cover,
@@ -117,7 +126,7 @@ class ArticleDetailPage extends StatelessWidget {
                         children: [
                           // Article Title
                           Text(
-                            article.title,
+                            widget.article.title,
                             style: theme.textTheme.headlineSmall,
                           ),
                           const SizedBox(height: 12),
@@ -144,7 +153,7 @@ class ArticleDetailPage extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  article.author,
+                                  widget.article.author,
                                   style: theme.textTheme.labelMedium?.copyWith(
                                     fontWeight: FontWeight.w500,
                                     color: theme.colorScheme.onSurfaceVariant,
@@ -158,7 +167,9 @@ class ArticleDetailPage extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  DateFormat.yMMMd().format(article.date),
+                                  DateFormat.yMMMd().format(
+                                    widget.article.date,
+                                  ),
                                   style: theme.textTheme.labelMedium?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),
@@ -176,13 +187,15 @@ class ArticleDetailPage extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: SingleChildScrollView(
                           controller: scrollController,
+                          // Add bottom padding to prevent overlap with TTS controls
+                          padding: const EdgeInsets.only(bottom: 90),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const SizedBox(height: 20),
                               // Placeholder body text
                               Text(
-                                article.text,
+                                widget.article.text,
                                 style: theme.textTheme.bodyLarge,
                               ),
                             ],
@@ -195,8 +208,31 @@ class ArticleDetailPage extends StatelessWidget {
               );
             },
           ),
+
+          // TTS Controls positioned below the back button
+          Positioned(
+            bottom: 15, // Below back button
+            left: 0,
+            right: 0,
+            child: Consumer<AuthProvider>(
+              builder: (context, authProvider, child) {
+                if (authProvider.isAuthenticated) {
+                  return TTSControlsWidget(textToRead: widget.article.text);
+                }
+                return const SizedBox.shrink(); // Don't show TTS controls for non-authenticated users
+              },
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    // Reset TTS provider when the article detail page is closed
+    final ttsProvider = Provider.of<TTSProvider>(context, listen: false);
+    ttsProvider.reset();
+    super.dispose();
   }
 }

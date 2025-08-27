@@ -10,6 +10,7 @@ import 'Pages/podcastpage.dart';
 import 'Pages/Profile/profilepage.dart';
 import 'Providers/navigation_provider.dart';
 import 'Providers/auth_provider.dart';
+import 'Providers/tts_provider.dart';
 import 'Pages/Home/homepage.dart';
 import 'Themes/theme_light.dart' as light_theme;
 import 'Themes/theme_dark.dart' as dark_theme;
@@ -33,6 +34,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
         ChangeNotifierProvider(create: (_) => NewsProvider()),
+        ChangeNotifierProvider(create: (_) => TTSProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: MaterialApp(
