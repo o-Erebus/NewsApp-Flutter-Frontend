@@ -22,10 +22,10 @@ class _CachedPage {
 }
 
 class NewsProvider with ChangeNotifier {
-  static const _pageSize = 5;
+  static final _pageSize = int.parse(Constants.pageSize); // Number of articles per page
   static const _cacheMaxAge = Duration(minutes: 5); // Cache expiry time
   static const _maxCacheSize = 20; // Maximum number of cached responses
-
+  static final _featuredArticlesSize = int.parse(Constants.featuredArticlesSize); // Number of featured articles
   /// This example uses a [PagingController] to manage the paging state.
   ///
   /// This is a robust inbuilt way to store your pagination state.
@@ -134,10 +134,8 @@ class NewsProvider with ChangeNotifier {
         // Fetch first 2 pages for each category without affecting UI
         unawaited(_fetchCategoryPage(category, 1).catchError((_) {}));
         unawaited(_fetchCategoryPage(category, 2).catchError((_) {}));
-      }
-
-      // Also check second page
-      if (!_isCategoryCached(category, 2)) {
+      } else if (!_isCategoryCached(category, 2)) {
+        // If first page is cached but second isn't, fetch second page
         unawaited(_fetchCategoryPage(category, 2).catchError((_) {}));
       }
     }
@@ -154,9 +152,12 @@ class NewsProvider with ChangeNotifier {
     // Check if cache is expired
     if (DateTime.now().difference(cachedPage.timestamp) > _cacheMaxAge) {
       cache.remove(pageKey);
+      _categoryLastFetch.remove(category);
+      debugPrint('Category cache expired for $category page $pageKey');
       return false;
     }
 
+    debugPrint('Category cache hit for $category page $pageKey');
     return true;
   }
 
@@ -192,12 +193,16 @@ class NewsProvider with ChangeNotifier {
     // Implement LRU by removing oldest entries if cache is full
     // But don't remove the page we're about to add
     if (cache.length >= _maxCacheSize && !cache.containsKey(pageKey)) {
-      final firstKey = cache.keys.first;
-      cache.remove(firstKey);
+      // Remove the least recently used entry (first entry in LinkedHashMap)
+      if (cache.isNotEmpty) {
+        final firstKey = cache.keys.first;
+        cache.remove(firstKey);
+      }
     }
 
     cache[pageKey] = page;
     _categoryLastFetch[category] = DateTime.now();
+    debugPrint('Cached page $pageKey for category $category. Cache size: ${cache.length}');
   }
 
   /// Check if a specific page of global articles is cached and not expired
@@ -208,9 +213,12 @@ class NewsProvider with ChangeNotifier {
     // Check if cache is expired
     if (DateTime.now().difference(cachedPage.timestamp) > _cacheMaxAge) {
       _globalCache.remove(pageKey);
+      _globalLastFetch = DateTime.now();
+      debugPrint('Global cache expired for page $pageKey');
       return false;
     }
 
+    debugPrint('Global cache hit for page $pageKey');
     return true;
   }
 
@@ -234,12 +242,16 @@ class NewsProvider with ChangeNotifier {
     // But don't remove the page we're about to add
     if (_globalCache.length >= _maxCacheSize &&
         !_globalCache.containsKey(pageKey)) {
-      final firstKey = _globalCache.keys.first;
-      _globalCache.remove(firstKey);
+      // Remove the least recently used entry (first entry in LinkedHashMap)
+      if (_globalCache.isNotEmpty) {
+        final firstKey = _globalCache.keys.first;
+        _globalCache.remove(firstKey);
+      }
     }
 
     _globalCache[pageKey] = page;
     _globalLastFetch = DateTime.now();
+    debugPrint('Cached global page $pageKey. Cache size: ${_globalCache.length}');
   }
 
   /// Fetch articles for a specific category with caching
@@ -437,10 +449,14 @@ class NewsProvider with ChangeNotifier {
     final uri = Uri.https(
       Constants.baseUrl.replaceAll('https://', ''),
       Constants.featuredArticlesEndpoint,
+      {
+        'page': '1',
+        'page_size': (_featuredArticlesSize).toString()
+      },
     );
 
     try {
-      final response = await _requestHandler.get(uri.toString());
+      final response = await _requestHandler.get(uri.toString(),);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
