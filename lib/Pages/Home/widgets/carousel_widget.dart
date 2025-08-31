@@ -5,6 +5,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../Models/news_article.dart'; // Ensure your NewsArticle has a unique ID or use imageUrl
 import '../../../Providers/news_provider.dart';
+import '../../_common_widgets/skeleton_loaders/carousel_skeleton_widget.dart';
+import '../../_common_widgets/skeleton_loaders/min_display_time_wrapper.dart';
 
 import '../../ArticleDetails/article_detail_page.dart'; // Ensure this path is correct
 // e.g., import 'package:carousel_view/carousel_view.dart';
@@ -18,21 +20,18 @@ class CarouselWidget extends StatefulWidget {
 
 class _CarouselWidgetState extends State<CarouselWidget> {
   bool _isLoading = true;
+  bool _isRefreshing = false;
 
-  @override
+ @override
   void initState() {
     super.initState();
-    // Fetch featured articles when the widget initializes
+    // Set loading to false after initial build since featured articles are fetched by homepage
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final newsProvider = context.read<NewsProvider>();
-      newsProvider.fetchFeaturedArticles().then((_) {
-        // Update the loading state after fetching
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     });
   }
 
@@ -40,14 +39,13 @@ class _CarouselWidgetState extends State<CarouselWidget> {
   Widget build(BuildContext context) {
     final newsProvider = context.watch<NewsProvider>();
     final List<NewsArticle> featuredArticles = newsProvider.featuredArticles;
+    final bool isFetchingFeatured = newsProvider.isFetchingFeaturedArticles;
 
     // Show loading indicator while fetching or if there are no articles
-    if (_isLoading || featuredArticles.isEmpty) {
-      return const SliverToBoxAdapter(
-        child: SizedBox(
-          height: 280.0,
-          child: Center(child: CircularProgressIndicator()),
-        ),
+    if (_isLoading || isFetchingFeatured || featuredArticles.isEmpty) {
+      return const MinDisplayTimeWrapper(
+        child: CarouselSkeletonWidget(),
+        minDisplayTime: Duration(milliseconds: 500),
       );
     }
 

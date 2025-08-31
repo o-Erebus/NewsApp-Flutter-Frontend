@@ -47,6 +47,7 @@ class NewsProvider with ChangeNotifier {
 
   final List<NewsArticle> _featuredArticles = [];
   final RequestHandler _requestHandler = RequestHandler();
+  bool _isFetchingFeaturedArticles = false;
 
   // Cache handlers for different purposes
   final Map<String, CacheHandler<NewsArticle>> _categoryCacheHandlers = {};
@@ -64,6 +65,7 @@ class NewsProvider with ChangeNotifier {
   PagingController<int, NewsArticle> get pagingController => _pagingController;
   List<NewsArticle> get featuredArticles => [..._featuredArticles];
   String get currentCategory => _currentCategory;
+  bool get isFetchingFeaturedArticles => _isFetchingFeaturedArticles;
 
   // Helper method to get featured article IDs
  Set<String> _getFeaturedArticleIds() {
@@ -350,7 +352,10 @@ class NewsProvider with ChangeNotifier {
   Future<void> fetchFeaturedArticles() async {
     // Create a separate loading state for featured articles to avoid conflicts
     // Note: We don't need to notifyListeners here as the PagingController handles that
-
+    
+    _isFetchingFeaturedArticles = true;
+    notifyListeners();
+    
     final uri = UriUtils.buildUri(Constants.featuredArticlesEndpoint);
 
     try {
@@ -374,6 +379,9 @@ class NewsProvider with ChangeNotifier {
       }
     } catch (e) {
       developer.log("Error fetching featured articles: $e");
+    } finally {
+      _isFetchingFeaturedArticles = false;
+      notifyListeners();
     }
   }
 

@@ -1,8 +1,14 @@
 // lib/screens/home_page.dart
+import 'dart:async';
+
 import 'package:finalyear/Pages/Home/widgets/carousel_widget.dart';
 import 'package:finalyear/Pages/Home/widgets/news_list_item_widget.dart';
 import 'package:finalyear/Pages/Home/widgets/category_pills_widget.dart';
+import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/news_list_item_skeleton_widget.dart';
+import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/simple_news_item_skeleton_widget.dart';
+import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/min_display_time_wrapper.dart';
 import 'package:flutter/material.dart';
+import 'dart:async'; // For unawaited
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:provider/provider.dart';
 
@@ -46,7 +52,14 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: () => newsProvider.fetchArticles(),
+        onRefresh: () {
+          // Clear caches immediately for fresh data
+          newsProvider.clearAllCaches();
+          // Fetch featured articles in the background (don't await)
+          unawaited(newsProvider.fetchFeaturedArticles());
+          // Refresh the paging controller directly for immediate skeleton loader display
+          return Future.sync(() => newsProvider.pagingController.refresh());
+        },
         child: CustomScrollView(
           slivers: <Widget>[
             CommonTitleWidget(
@@ -91,10 +104,13 @@ class _HomePageState extends State<HomePage> {
                         },
                       ),
                       firstPageProgressIndicatorBuilder: (_) =>
-                          const Center(child: CircularProgressIndicator()),
-                      newPageProgressIndicatorBuilder: (_) => const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 32.0),
-                        child: Center(child: CircularProgressIndicator()),
+                          const MinDisplayTimeWrapper(
+                            child: NewsListItemSkeletonWidget(),
+                            minDisplayTime: Duration(milliseconds: 500),
+                          ),
+                      newPageProgressIndicatorBuilder: (_) => const MinDisplayTimeWrapper(
+                        child: NewsListItemSkeletonWidget(),
+                        minDisplayTime: Duration(milliseconds: 500),
                       ),
                       noItemsFoundIndicatorBuilder: (_) =>
                           NoArticlesIndicatorWidget(theme: theme),

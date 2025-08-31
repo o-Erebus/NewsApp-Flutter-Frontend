@@ -1,5 +1,8 @@
 // lib/Pages/Global/widgets/magazine_layout_widget.dart
 import 'package:finalyear/Pages/Global/widgets/magazine_feature_item_widget.dart';
+import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/magazine_skeleton_widgets.dart';
+import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/simple_news_item_skeleton_widget.dart';
+import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/min_display_time_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
@@ -20,8 +23,12 @@ class MagazineLayoutWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: () =>
-          Future.sync(() => newsProvider.globalPagingController.refresh()),
+      onRefresh: () {
+        // Clear caches immediately for fresh data
+        newsProvider.clearAllCaches();
+        // Refresh the paging controller directly for immediate skeleton loader display
+        return Future.sync(() => newsProvider.globalPagingController.refresh());
+      },
       child: CustomScrollView(
         slivers: <Widget>[
           const CommonTitleWidget(title: "Global Page", variant: 1),
@@ -67,10 +74,23 @@ class MagazineLayoutWidget extends StatelessWidget {
                       },
                     ),
                     firstPageProgressIndicatorBuilder: (_) =>
-                        const Center(child: CircularProgressIndicator()),
+                        const MinDisplayTimeWrapper(
+                          child: Column(
+                            children: [
+                              MagazineFeaturedItemSkeleton(),
+                              MagazineNewsItemSkeleton(),
+                              MagazineNewsItemSkeleton(),
+                              MagazineNewsItemSkeleton(),
+                            ],
+                          ),
+                          minDisplayTime: Duration(milliseconds: 500),
+                        ),
                     newPageProgressIndicatorBuilder: (_) => const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 32.0),
-                      child: Center(child: CircularProgressIndicator()),
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: MinDisplayTimeWrapper(
+                        child: MagazineNewsItemSkeleton(),
+                        minDisplayTime: Duration(milliseconds: 500),
+                      ),
                     ),
                     noItemsFoundIndicatorBuilder: (_) =>
                         NoArticlesIndicatorWidget(theme: Theme.of(context)),
