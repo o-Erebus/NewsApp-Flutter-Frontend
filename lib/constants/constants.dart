@@ -1,8 +1,8 @@
 class Constants {
   
   static const String baseUrlTest = "http://10.0.0.5:8000";
-  static const String baseUrlProd = "https://fyp-backend-dev.onrender.com";
-  static const bool isProd = false;
+  static const String baseUrlProd = "https://nexora-newsapp-backend.onrender.com";
+  static const bool isProd = true;
   static final String baseUrl = isProd ? baseUrlProd : baseUrlTest;
   static const String articlesEndpoint = "/articles/";
   static const String featuredArticlesEndpoint = "/articles/featured";

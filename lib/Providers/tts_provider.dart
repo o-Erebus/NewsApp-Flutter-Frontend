@@ -9,7 +9,7 @@ class TTSProvider with ChangeNotifier {
   bool _isMaleVoice = true;
   List<dynamic> _availableVoices = [];
   int _currentVoiceIndex = 0;
-  double _speed = 0.75;
+  double _speed = 0.5;
   String? _currentText;
   String? _errorMessage;
 
@@ -23,14 +23,16 @@ class TTSProvider with ChangeNotifier {
   int _pausePosition = 0; // For Android pause position tracking
   bool _isAndroid = Platform.isAndroid; // Platform detection
 
-  final List<double> speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
-  int _currentSpeedIndex = 1; // Index of 0.75 speed
+  final List<double> speedOptions = [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0];
+  final List<double> uiSpeedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+  int _currentSpeedIndex = 2; // Index of 0.5 speed (UI: 1x)
 
   // Getters
   bool get isPlaying => _isPlaying;
   bool get isMaleVoice => _isMaleVoice;
   double get speed => _speed;
   int get currentSpeedIndex => _currentSpeedIndex;
+  double get currentUiSpeed => uiSpeedOptions[_currentSpeedIndex];
   String? get errorMessage => _errorMessage;
   bool get isPaused => _isPaused;
   int get pausePosition => _pausePosition;
@@ -129,17 +131,21 @@ class TTSProvider with ChangeNotifier {
       List<dynamic> voices = await _flutterTts.getVoices;
       print("All available voices: $voices");
       voices.forEach(print);
+      List<dynamic> engines = await _flutterTts.getEngines;
+      print("Available Engines: $engines");
+      engines.forEach(print);
       if (voices != null && voices.isNotEmpty) {
         // Filter voices for en-IN and en-US locales with high quality
         // Be more permissive with the filtering - if no voices match our strict criteria, use all voices
         List<dynamic> filteredVoices = voices.where((voice) {
           String locale = voice['locale'] as String? ?? '';
           // Check if locale is en-IN or en-US (or include all if no specific locales found)
-          return locale == 'en-GB' ||
-              locale == 'en-IN' ||
-              locale == 'en-US' ||
+          return locale == 'en-US' ||
               locale == 'en-EU' ||
-              locale == 'en-UK';
+              locale == 'en-UK' ||
+              locale == 'en-GB' ||
+              locale == 'en-IN' ||
+              locale == 'en-AU';
         }).toList();
 
         print("Filtered voices (en-IN/en-US): $filteredVoices");

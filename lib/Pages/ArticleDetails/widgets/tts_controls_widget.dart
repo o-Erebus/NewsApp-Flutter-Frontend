@@ -113,7 +113,7 @@ class TTSControlsWidget extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        "${ttsProvider.speed}x",
+                        "${ttsProvider.currentUiSpeed}x",
                         maxLines: 1,
                         overflow: TextOverflow.fade,
                         softWrap: false,
