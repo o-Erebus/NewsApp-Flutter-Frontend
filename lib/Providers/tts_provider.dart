@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io' show Platform;
+import 'dart:developer' as developer;
 
 class TTSProvider with ChangeNotifier {
   late FlutterTts _flutterTts;
@@ -51,9 +52,9 @@ class TTSProvider with ChangeNotifier {
   bool get isProcessingChunks => _isProcessingChunks;
 
   TTSProvider() {
-    print("TTSProvider: Constructor called");
+    developer.log("TSProvider: Constructor called");
     _initTts();
-    print("TTS Provider initialized");
+    developer.log("TS Provider initialized");
   }
 
   _initTts() async {
@@ -63,14 +64,12 @@ class TTSProvider with ChangeNotifier {
     }
     try {
       await _setVoice();
-      print(
-        "Voice setting completed, available voices: ${_availableVoices.length}",
-      );
+      developer.log("Voice setting completed, available voices: ${_availableVoices.length}");
       await _flutterTts.setSpeechRate(_speed);
 
       // --- Set up listeners ---
       _flutterTts.setStartHandler(() {
-        print('TTSProvider: TTS started');
+        developer.log('TTSProvider: TTS started');
         _isPlaying = true;
         _isPaused = false;
         _errorMessage = null;
@@ -78,7 +77,7 @@ class TTSProvider with ChangeNotifier {
       });
 
       _flutterTts.setCompletionHandler(() {
-        print('TTSProvider: TTS completed');
+        developer.log('TTSProvider: TTS completed');
         if (!_isProcessingChunks) {
           _isPlaying = false;
           _isPaused = false;
@@ -90,7 +89,7 @@ class TTSProvider with ChangeNotifier {
       });
 
       _flutterTts.setErrorHandler((msg) {
-        print('TTSProvider: TTS error: $msg');
+        developer.log('TTSProvider: TTS error: $msg');
         if (!_isProcessingChunks) {
           _isPlaying = false;
           _isPaused = false;
@@ -99,7 +98,7 @@ class TTSProvider with ChangeNotifier {
           _totalSpokenLength = 0;
           _currentUtteranceWordStart = 0;
           notifyListeners();
-          print("TTS Error: $msg");
+          developer.log("TTS Error: $msg");
         }
       });
 
@@ -120,19 +119,19 @@ class TTSProvider with ChangeNotifier {
       }
     } catch (e) {
       _errorMessage = "Failed to initialize TTS: $e";
-      print("TTS initialization error: $e");
+      developer.log("TTS initialization error: $e");
     }
-    print("TTS initialization completed");
+    developer.log("TTS initialization completed");
   }
 
   Future<void> _setVoice() async {
     try {
       // Get available voices
       List<dynamic> voices = await _flutterTts.getVoices;
-      print("All available voices: $voices");
+      developer.log("All available voices: $voices");
       voices.forEach(print);
       List<dynamic> engines = await _flutterTts.getEngines;
-      print("Available Engines: $engines");
+      developer.log("Available Engines: $engines");
       engines.forEach(print);
       if (voices != null && voices.isNotEmpty) {
         // Filter voices for en-IN and en-US locales with high quality
@@ -148,11 +147,11 @@ class TTSProvider with ChangeNotifier {
               locale == 'en-AU';
         }).toList();
 
-        print("Filtered voices (en-IN/en-US): $filteredVoices");
+        developer.log("Filtered voices (en-IN/en-US): $filteredVoices");
 
         // If no filtered voices found, use all voices
         if (filteredVoices.isEmpty) {
-          print("No filtered voices found, using all voices");
+          developer.log("No filtered voices found, using all voices");
           filteredVoices = voices;
         }
 
@@ -182,43 +181,43 @@ class TTSProvider with ChangeNotifier {
           return networkRequired == 0;
         }).toList();
 
-        print("Network voices: $networkVoices");
-        print("Local voices: $localVoices");
+        developer.log("Network voices: $networkVoices");
+        developer.log("Local voices: $localVoices");
 
         // Prefer network voices first, then local voices
         List<dynamic> preferredVoices = [...networkVoices, ...localVoices];
 
         // If no preferred voices found, use all filtered voices
         if (preferredVoices.isEmpty) {
-          print("No preferred voices found, using all filtered voices");
+          developer.log("No preferred voices found, using all filtered voices");
           preferredVoices = filteredVoices;
         }
 
-        print("Preferred voices: $preferredVoices");
+        developer.log("Preferred voices: $preferredVoices");
 
         // Update available voices list
         _availableVoices = preferredVoices;
         _currentVoiceIndex = 0;
 
-        print("Available voices count: ${_availableVoices.length}");
+        developer.log("Available voices count: ${_availableVoices.length}");
 
         // Select the current voice
         await _setSpecificVoice();
       } else {
-        print("No voices available");
+        developer.log("No voices available");
         // Even if no voices from getVoices, initialize with empty list
         _availableVoices = [];
         _currentVoiceIndex = 0;
       }
     } catch (e) {
       _errorMessage = "Error setting voice: $e";
-      print("Error setting voice: $e");
+      developer.log("Error setting voice: $e");
     }
   }
 
   Future<void> _setSpecificVoice() async {
     try {
-      print(
+      developer.log(
         "Setting specific voice, available voices count: ${_availableVoices.length}, current index: $_currentVoiceIndex",
       );
       if (_availableVoices.isNotEmpty) {
@@ -232,7 +231,7 @@ class TTSProvider with ChangeNotifier {
         String? voiceName = currentVoice['name'] as String?;
         String? voiceLocale = currentVoice['locale'] as String?;
 
-        print("Setting voice - Name: $voiceName, Locale: $voiceLocale");
+        developer.log("Setting voice - Name: $voiceName, Locale: $voiceLocale");
 
         // Only set voice if we have a valid voice name and locale
         if (voiceName != null && voiceLocale != null) {
@@ -241,21 +240,21 @@ class TTSProvider with ChangeNotifier {
               "name": voiceName,
               "locale": voiceLocale,
             });
-            print("Successfully set voice to $voiceName ($voiceLocale)");
+            developer.log("Successfully set voice to $voiceName ($voiceLocale)");
           } catch (setVoiceError) {
-            print(
+            developer.log(
               "Error setting voice to $voiceName ($voiceLocale): $setVoiceError",
             );
           }
         } else {
-          print("Failed to set voice - invalid name or locale");
+          developer.log("Failed to set voice - invalid name or locale");
         }
       } else {
-        print("No available voices to set");
+        developer.log("No available voices to set");
       }
     } catch (e) {
       _errorMessage = "Error setting specific voice: $e";
-      print("Error setting specific voice: $e");
+      developer.log("Error setting specific voice: $e");
     }
   }
 
@@ -263,9 +262,9 @@ class TTSProvider with ChangeNotifier {
     // Check if the text has changed from the current text
     if (_currentText != text) {
       // Reset state for new text
-      print('TTSProvider: togglePlayPause - text changed, calling reset()');
+      developer.log('TTSProvider: togglePlayPause - text changed, calling reset()');
       await reset();
-      print('TTSProvider: togglePlayPause - reset() completed');
+      developer.log('TTSProvider: togglePlayPause - reset() completed');
       _currentText = text;
     }
 
@@ -293,9 +292,9 @@ class TTSProvider with ChangeNotifier {
   }
 
   Future<void> pause() async {
-    print('TTSProvider: pause() called');
+    developer.log('TTSProvider: pause() called');
     if (!_isPlaying && !_isProcessingChunks) {
-      print(
+      developer.log(
         'TTSProvider: pause() returning early - not playing or processing chunks',
       );
       return;
@@ -304,20 +303,20 @@ class TTSProvider with ChangeNotifier {
       // Save exact pause position BEFORE stop
       if (_currentText != null) {
         _pausePosition = _totalSpokenLength + _currentUtteranceWordStart;
-        print('TTSProvider: pause position saved: $_pausePosition');
+        developer.log('TTSProvider: pause position saved: $_pausePosition');
       }
 
-      print('TTSProvider: Calling _flutterTts.stop() in pause()');
+      developer.log('TTSProvider: Calling _flutterTts.stop() in pause()');
       await _flutterTts.stop();
-      print('TTSProvider: _flutterTts.stop() completed in pause()');
+      developer.log('TTSProvider: _flutterTts.stop() completed in pause()');
       _isPlaying = false;
       _isPaused = true;
 
       notifyListeners();
-      print('TTSProvider: pause() completed');
+      developer.log('TTSProvider: pause() completed');
     } catch (e) {
       _errorMessage = "Error pausing TTS: $e";
-      print("Error pausing TTS: $e");
+      developer.log("Error pausing TTS: $e");
     }
   }
 
@@ -352,16 +351,16 @@ class TTSProvider with ChangeNotifier {
       }
     } catch (e) {
       _errorMessage = "Error resuming TTS: $e";
-      print("Error resuming TTS: $e");
+      developer.log("Error resuming TTS: $e");
     }
   }
 
   Future<void> stop() async {
-    print('TTSProvider: stop() called');
+    developer.log('TTSProvider: stop() called');
     try {
-      print('TTSProvider: Calling _flutterTts.stop()');
+      developer.log('TTSProvider: Calling _flutterTts.stop()');
       await _flutterTts.stop();
-      print('TTSProvider: _flutterTts.stop() completed');
+      developer.log('TTSProvider: _flutterTts.stop() completed');
       _isPlaying = false;
       _isPaused = false;
       _isProcessingChunks = false;
@@ -370,24 +369,24 @@ class TTSProvider with ChangeNotifier {
       _totalSpokenLength = 0;
       _currentUtteranceWordStart = 0;
       notifyListeners();
-      print('TTSProvider: stop() completed');
+      developer.log('TTSProvider: stop() completed');
     } catch (e) {
       _errorMessage = "Error stopping TTS: $e";
-      print("Error stopping TTS: $e");
+      developer.log("Error stopping TTS: $e");
     }
   }
 
   Future<void> toggleVoice() async {
-    print(
+    developer.log(
       "Toggling voice, current available voices count: ${_availableVoices.length}, current index: $_currentVoiceIndex",
     );
     if (_availableVoices.isNotEmpty) {
       _currentVoiceIndex = (_currentVoiceIndex + 1) % _availableVoices.length;
-      print("New voice index: $_currentVoiceIndex");
+      developer.log("New voice index: $_currentVoiceIndex");
       await _setSpecificVoice();
       notifyListeners();
     } else {
-      print("No available voices to toggle");
+      developer.log("No available voices to toggle");
     }
   }
 
@@ -398,7 +397,7 @@ class TTSProvider with ChangeNotifier {
       await _flutterTts.setSpeechRate(_speed);
     } catch (e) {
       _errorMessage = "Error setting speech rate: $e";
-      print("Error setting speech rate: $e");
+      developer.log("Error setting speech rate: $e");
     }
     notifyListeners();
   }
@@ -503,7 +502,7 @@ class TTSProvider with ChangeNotifier {
       _isProcessingChunks = false;
       _errorMessage = "Error in chunked text processing: $e";
       notifyListeners();
-      print("Error in chunked text processing: $e");
+      developer.log("Error in chunked text processing: $e");
     }
   }
 
@@ -534,7 +533,7 @@ class TTSProvider with ChangeNotifier {
       _isProcessingChunks = false;
       _errorMessage = "Error in chunked text processing: $e";
       notifyListeners();
-      print("Error in chunked text processing: $e");
+      developer.log("Error in chunked text processing: $e");
     }
   }
 
@@ -577,7 +576,7 @@ class TTSProvider with ChangeNotifier {
           _errorMessage =
               "Error speaking chunk ${_currentChunkIndex + 1}/${_textChunks.length}: $msg";
           notifyListeners();
-          print(
+          developer.log(
             "TTS Error in chunk ${_currentChunkIndex + 1}/${_textChunks.length}: $msg",
           );
         }
@@ -593,7 +592,7 @@ class TTSProvider with ChangeNotifier {
       _errorMessage =
           "Error processing chunk ${_currentChunkIndex + 1}/${_textChunks.length}: $e";
       notifyListeners();
-      print(
+      developer.log(
         "Error processing chunk ${_currentChunkIndex + 1}/${_textChunks.length}: $e",
       );
     }
@@ -635,13 +634,13 @@ class TTSProvider with ChangeNotifier {
 
   /// Cancels chunked text processing
   Future<void> cancelChunkProcessing() async {
-    print('TTSProvider: cancelChunkProcessing() called');
+    developer.log('TTSProvider: cancelChunkProcessing() called');
     try {
-      print(
+      developer.log(
         'TTSProvider: Calling _flutterTts.stop() in cancelChunkProcessing()',
       );
       await _flutterTts.stop();
-      print(
+      developer.log(
         'TTSProvider: _flutterTts.stop() completed in cancelChunkProcessing()',
       );
       _isPlaying = false;
@@ -652,10 +651,10 @@ class TTSProvider with ChangeNotifier {
       _pausePosition = 0;
       _errorMessage = null;
       notifyListeners();
-      print('TTSProvider: cancelChunkProcessing() completed');
+      developer.log('TTSProvider: cancelChunkProcessing() completed');
     } catch (e) {
       _errorMessage = "Error cancelling chunk processing: $e";
-      print("Error cancelling chunk processing: $e");
+      developer.log("Error cancelling chunk processing: $e");
       notifyListeners();
     }
   }
@@ -694,7 +693,7 @@ class TTSProvider with ChangeNotifier {
 
   /// Resets all TTS state variables
   Future<void> reset() async {
-    print('TTSProvider: reset() called');
+    developer.log('TTSProvider: reset() called');
     _currentText = null;
     _textChunks = [];
     _currentChunkIndex = 0;
@@ -705,22 +704,22 @@ class TTSProvider with ChangeNotifier {
     _currentUtteranceWordStart = 0;
     _pausePosition = 0;
     _errorMessage = null;
-    print('TTSProvider: Calling _flutterTts.stop()');
+    developer.log('TTSProvider: Calling _flutterTts.stop()');
     try {
       await _flutterTts.stop();
-      print('TTSProvider: _flutterTts.stop() completed');
+      developer.log('TTSProvider: _flutterTts.stop() completed');
     } catch (e) {
-      print('TTSProvider: Error in _flutterTts.stop(): $e');
+      developer.log('TTSProvider: Error in _flutterTts.stop(): $e');
     }
     notifyListeners();
-    print('TTSProvider: reset() completed');
+    developer.log('TTSProvider: reset() completed');
   }
 
   void dispose() {
-    print('TTSProvider: dispose() called');
+    developer.log('TTSProvider: dispose() called');
     _flutterTts.stop();
-    print('TTSProvider: _flutterTts.stop() called in dispose()');
+    developer.log('TTSProvider: _flutterTts.stop() called in dispose()');
     super.dispose();
-    print('TTSProvider: dispose() completed');
+    developer.log('TTSProvider: dispose() completed');
   }
 }

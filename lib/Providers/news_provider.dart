@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io'; // For HttpException
 import 'package:finalyear/constants/constants.dart';
 import 'package:flutter/foundation.dart';
@@ -369,10 +370,10 @@ class NewsProvider with ChangeNotifier {
         // Only notifyListeners for featuredArticles as pagingController handles its own state
         notifyListeners();
       } else {
-        print("Server error: ${response.statusCode}");
+        developer.log("Server error: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error fetching featured articles: $e");
+      developer.log("Error fetching featured articles: $e");
     }
   }
 
@@ -403,7 +404,7 @@ class NewsProvider with ChangeNotifier {
     // Clear 'all' cache
     _allCacheHandler.clearAllCache();
     
-    debugPrint('All caches cleared');
+    developer.log('All caches cleared');
   }
 
   void dispose() {
