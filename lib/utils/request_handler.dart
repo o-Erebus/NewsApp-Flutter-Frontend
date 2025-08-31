@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:finalyear/constants/constants.dart';
 
 class RequestHandler {
   static final RequestHandler _instance = RequestHandler._internal();
@@ -13,7 +14,10 @@ class RequestHandler {
 
     final Map<String, String> defaultHeaders = {
       'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
+      if (token != null)
+        'Authorization': 'Bearer $token'
+      else
+        'Authorization': 'Bearer ${Constants.secretKey}',
     };
 
     if (headers != null) {
@@ -33,7 +37,10 @@ class RequestHandler {
 
     final Map<String, String> defaultHeaders = {
       'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
+      if (token != null)
+        'Authorization': 'Bearer $token'
+      else
+        'Authorization': 'Bearer ${Constants.secretKey}',
     };
 
     if (headers != null) {
@@ -53,7 +60,10 @@ class RequestHandler {
 
     final Map<String, String> defaultHeaders = {
       'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
+      if (token != null)
+        'Authorization': 'Bearer $token'
+      else
+        'Authorization': 'Bearer ${Constants.secretKey}',
     };
 
     if (headers != null) {
@@ -72,7 +82,10 @@ class RequestHandler {
 
     final Map<String, String> defaultHeaders = {
       'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
+      if (token != null)
+        'Authorization': 'Bearer $token'
+      else
+        'Authorization': 'Bearer ${Constants.secretKey}',
     };
 
     if (headers != null) {
