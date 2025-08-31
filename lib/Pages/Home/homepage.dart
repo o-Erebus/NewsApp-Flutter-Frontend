@@ -5,7 +5,6 @@ import 'package:finalyear/Pages/Home/widgets/carousel_widget.dart';
 import 'package:finalyear/Pages/Home/widgets/news_list_item_widget.dart';
 import 'package:finalyear/Pages/Home/widgets/category_pills_widget.dart';
 import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/news_list_item_skeleton_widget.dart';
-import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/simple_news_item_skeleton_widget.dart';
 import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/min_display_time_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'dart:async'; // For unawaited

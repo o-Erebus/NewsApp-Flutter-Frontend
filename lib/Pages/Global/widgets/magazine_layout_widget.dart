@@ -1,7 +1,6 @@
 // lib/Pages/Global/widgets/magazine_layout_widget.dart
 import 'package:finalyear/Pages/Global/widgets/magazine_feature_item_widget.dart';
 import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/magazine_skeleton_widgets.dart';
-import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/simple_news_item_skeleton_widget.dart';
 import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/min_display_time_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
