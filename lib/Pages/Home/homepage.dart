@@ -6,6 +6,8 @@ import 'package:finalyear/Pages/Home/widgets/news_list_item_widget.dart';
 import 'package:finalyear/Pages/Home/widgets/category_pills_widget.dart';
 import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/news_list_item_skeleton_widget.dart';
 import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/min_display_time_wrapper.dart';
+import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/heading_skeleton_widget.dart';
+import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/category_pills_skeleton_widget.dart';
 import 'package:flutter/material.dart';
 import 'dart:async'; // For unawaited
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
@@ -33,9 +35,19 @@ class _HomePageState extends State<HomePage> {
     return '${greetingData['message']} ${greetingData['emoji']}';
   }
 
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
+    // Set loading to false after a delay to simulate initial loading
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    });
   }
 
   @override
@@ -52,12 +64,25 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () {
+          // Set loading state to true
+          setState(() {
+            _isLoading = true;
+          });
           // Clear caches immediately for fresh data
           newsProvider.clearAllCaches();
           // Fetch featured articles in the background (don't await)
           unawaited(newsProvider.fetchFeaturedArticles());
           // Refresh the paging controller directly for immediate skeleton loader display
-          return Future.sync(() => newsProvider.pagingController.refresh());
+          return Future.sync(
+            () => newsProvider.pagingController.refresh(),
+          ).then((_) {
+            // Set loading state back to false after refresh is complete
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
+          });
         },
         child: CustomScrollView(
           slivers: <Widget>[
@@ -69,14 +94,27 @@ class _HomePageState extends State<HomePage> {
             // START: Put your Carousel Widget here (remains the same or similar)
             const CarouselWidget(), // Keep this simple or manage its state separately
             // END: Put your Carousel Widget here
-            const HeadingWidget(title: "Top Headlines"), // Keep this simple
-            // Add the category pills widget
-            CategoryPillsWidget(
-              onCategorySelected: (category) {
-                // Use read to avoid rebuilding the widget when provider changes
-                context.read<NewsProvider>().selectCategory(category);
-              },
-            ),
+            // Show heading skeleton when loading, otherwise show the actual heading
+            _isLoading
+                ? const MinDisplayTimeWrapper(
+                    child: HeadingSkeletonWidget(),
+                    minDisplayTime: Duration(milliseconds: 2500),
+                  )
+                : const HeadingWidget(
+                    title: "Top Headlines",
+                  ), // Keep this simple
+            // Show category pills skeleton when loading, otherwise show the actual category pills
+            _isLoading
+                ? const MinDisplayTimeWrapper(
+                    child: CategoryPillsSkeletonWidget(),
+                    minDisplayTime: Duration(milliseconds: 2500),
+                  )
+                : CategoryPillsWidget(
+                    onCategorySelected: (category) {
+                      // Use read to avoid rebuilding the widget when provider changes
+                      context.read<NewsProvider>().selectCategory(category);
+                    },
+                  ),
             // START: Infinite Scroll List using infinite_scroll_pagination
             PagingListener(
               controller: newsProvider.pagingController,
@@ -107,10 +145,11 @@ class _HomePageState extends State<HomePage> {
                             child: NewsListItemSkeletonWidget(),
                             minDisplayTime: Duration(milliseconds: 500),
                           ),
-                      newPageProgressIndicatorBuilder: (_) => const MinDisplayTimeWrapper(
-                        child: NewsListItemSkeletonWidget(),
-                        minDisplayTime: Duration(milliseconds: 500),
-                      ),
+                      newPageProgressIndicatorBuilder: (_) =>
+                          const MinDisplayTimeWrapper(
+                            child: NewsListItemSkeletonWidget(),
+                            minDisplayTime: Duration(milliseconds: 500),
+                          ),
                       noItemsFoundIndicatorBuilder: (_) =>
                           NoArticlesIndicatorWidget(theme: theme),
                       noMoreItemsIndicatorBuilder: (_) =>
