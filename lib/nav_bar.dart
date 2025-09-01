@@ -39,7 +39,7 @@ class FloatingNavbar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(40),
+        borderRadius: BorderRadius.circular(20), // ✅ changed to 20
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.12),
@@ -70,6 +70,7 @@ class FloatingNavbar extends StatelessWidget {
     int previousIndex,
   ) {
     showModalBottomSheet(
+      
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
@@ -105,23 +106,37 @@ class GNavInspiredBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return SizedBox(
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+      padding: const EdgeInsets.all(0),
       height: 48,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: tabs.map((button) {
-          final int index = tabs.indexOf(button);
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: tabs.asMap().entries.map((entry) {
+          final int index = entry.key;
+          final button = entry.value;
           final bool isActive = selectedIndex == index;
 
-          return GNavAnimatedButton(
-            key: button.key,
-            active: isActive,
-            icon: button.icon,
-            text: button.text,
-            activeColor: theme.colorScheme.primary,
-            inactiveColor: theme.colorScheme.onSurfaceVariant,
-            textColor: theme.colorScheme.onPrimary,
-            onPressed: () => onTabChange(index),
+          // ✅ Add equal outer gaps for first/last buttons
+          EdgeInsets margin = EdgeInsets.zero;
+          if (index == 0) {
+            margin = const EdgeInsets.only(left: 2);
+          } else if (index == tabs.length - 1) {
+            margin = const EdgeInsets.only(right: 2);
+          }
+
+          return Padding(
+            padding: margin,
+            child: GNavAnimatedButton(
+              key: button.key,
+              active: isActive,
+              icon: button.icon,
+              text: button.text,
+              activeColor: theme.colorScheme.primary,
+              inactiveColor: theme.colorScheme.onSurfaceVariant,
+              textColor: theme.colorScheme.onPrimary,
+              onPressed: () => onTabChange(index),
+            ),
           );
         }).toList(),
       ),
@@ -144,6 +159,7 @@ class GNavInspiredButton extends StatelessWidget {
     return Container();
   }
 }
+
 //==============================================================================
 // 4. CORE ANIMATED BUTTON WIDGET (The Animation Engine)
 //==============================================================================
@@ -158,7 +174,6 @@ class GNavAnimatedButton extends StatefulWidget {
     required this.activeColor,
     required this.inactiveColor,
     required this.textColor,
-    // ✅ CHANGE 1: Increased overall animation speed
     this.duration = const Duration(milliseconds: 250),
     this.curve = Curves.easeOutCubic,
     this.gap = 8.0,
@@ -197,18 +212,15 @@ class _GNavAnimatedButtonState extends State<GNavAnimatedButton>
   void didUpdateWidget(covariant GNavAnimatedButton oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // ✅ CHANGE 2: Use different durations and curves for expand/collapse
     if (widget.active != oldWidget.active) {
       if (widget.active) {
         HapticFeedback.lightImpact();
-        // Animate EXPANSION with the default (faster) duration
         _controller.animateTo(
           1.0,
           duration: widget.duration,
           curve: widget.curve,
         );
       } else {
-        // Animate COLLAPSE with a much shorter duration for a near-instant effect
         _controller.animateBack(
           0.0,
           duration: const Duration(milliseconds: 100),
@@ -226,7 +238,6 @@ class _GNavAnimatedButtonState extends State<GNavAnimatedButton>
 
   @override
   Widget build(BuildContext context) {
-    // Animate the icon color directly on the controller's value
     _iconColorAnimation = ColorTween(
       begin: widget.inactiveColor,
       end: widget.textColor,
@@ -239,11 +250,10 @@ class _GNavAnimatedButtonState extends State<GNavAnimatedButton>
         type: MaterialType.transparency,
         child: InkWell(
           onTap: widget.onPressed,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(15), // ✅ updated
           child: AnimatedBuilder(
             animation: _controller,
             builder: (context, child) {
-              // The controller's value is now curved directly by the `animateTo` calls
               final animationValue = _controller.value;
 
               return Container(
@@ -253,7 +263,7 @@ class _GNavAnimatedButtonState extends State<GNavAnimatedButton>
                 ),
                 decoration: BoxDecoration(
                   color: widget.activeColor.withOpacity(animationValue),
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(15), // ✅ updated
                 ),
                 child: Row(
                   children: [
