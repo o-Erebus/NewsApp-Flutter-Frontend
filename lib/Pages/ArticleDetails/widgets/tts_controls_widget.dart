@@ -26,39 +26,45 @@ class TTSControlsWidget extends StatelessWidget {
       child: SizedBox(
         height: 48,
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Voice selection button (left)
-            Material(
-              type: MaterialType.transparency,
-              child: InkWell(
-                onTap: () => ttsProvider.toggleVoice(),
-                borderRadius: BorderRadius.circular(30),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.mic,
-                        color: theme.colorScheme.onSurface,
-                        size: 22,
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(
+                    onTap: () => ttsProvider.toggleVoice(),
+                    borderRadius: BorderRadius.circular(30),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        "Voice ${ttsProvider.currentVoiceIndex + 1}",
-                        maxLines: 1,
-                        overflow: TextOverflow.fade,
-                        softWrap: false,
-                        style: TextStyle(
-                          color: theme.colorScheme.onSurface,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.mic,
+                            color: theme.colorScheme.onSurface,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            "Voice ${ttsProvider.currentVoiceIndex + 1}",
+                            maxLines: 1,
+                            overflow: TextOverflow.fade,
+                            softWrap: false,
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -94,36 +100,42 @@ class TTSControlsWidget extends StatelessWidget {
             ),
 
             // Speed control button (right)
-            Material(
-              type: MaterialType.transparency,
-              child: InkWell(
-                onTap: () => ttsProvider.changeSpeed(),
-                borderRadius: BorderRadius.circular(30),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.speed,
-                        color: theme.colorScheme.onSurface,
-                        size: 22,
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(
+                    onTap: () => ttsProvider.changeSpeed(),
+                    borderRadius: BorderRadius.circular(30),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        "${ttsProvider.currentUiSpeed}x",
-                        maxLines: 1,
-                        overflow: TextOverflow.fade,
-                        softWrap: false,
-                        style: TextStyle(
-                          color: theme.colorScheme.onSurface,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.speed,
+                            color: theme.colorScheme.onSurface,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            "${ttsProvider.currentUiSpeed}x",
+                            maxLines: 1,
+                            overflow: TextOverflow.fade,
+                            softWrap: false,
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),

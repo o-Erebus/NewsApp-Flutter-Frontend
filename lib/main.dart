@@ -11,6 +11,8 @@ import 'Pages/Profile/profilepage.dart';
 import 'Providers/navigation_provider.dart';
 import 'Providers/auth_provider.dart';
 import 'Providers/tts_provider.dart';
+import 'Providers/history_provider.dart';
+import 'Providers/ai_provider.dart';
 import 'Pages/Home/homepage.dart';
 import 'Themes/theme_light.dart' as light_theme;
 import 'Themes/theme_dark.dart' as dark_theme;
@@ -36,6 +38,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => NewsProvider()),
         ChangeNotifierProvider(create: (_) => TTSProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => HistoryProvider()),
+        ChangeNotifierProvider(create: (_) => AiProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

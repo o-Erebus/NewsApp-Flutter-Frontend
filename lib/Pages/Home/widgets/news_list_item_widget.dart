@@ -132,12 +132,16 @@ class NewsListItemWidget extends StatelessWidget {
                               ),
                             ),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                article.author,
-                                style: theme.textTheme.labelMedium,
+                              Expanded(
+                                child: Text(
+                                  article.author,
+                                  style: theme.textTheme.labelMedium,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               Text(
                                 DateFormat.yMMMd().format(article.date),
                                 style: theme.textTheme.labelMedium,

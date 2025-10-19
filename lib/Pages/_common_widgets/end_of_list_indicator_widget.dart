@@ -8,7 +8,9 @@ class EndOfListIndicatorWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32.0),
+      padding:
+          const EdgeInsets.symmetric(vertical: 32.0) +
+          const EdgeInsets.only(bottom: 80.0),
       child: Center(
         child: Text(
           "You've reached the end!",

@@ -47,7 +47,22 @@ class RequestHandler {
       defaultHeaders.addAll(headers);
     }
 
-    return http.post(uri, headers: defaultHeaders, body: jsonEncode(body));
+    String requestBody = '';
+    try {
+      if (body == null) {
+        requestBody = '';
+      } else if (body is String) {
+        // Already a JSON string (or plain string) - send as-is
+        requestBody = body;
+      } else {
+        requestBody = jsonEncode(body);
+      }
+    } catch (e) {
+      // Fallback to encoding whatever it is
+      requestBody = body.toString();
+    }
+
+    return http.post(uri, headers: defaultHeaders, body: requestBody);
   }
 
   Future<http.Response> put(
@@ -70,7 +85,20 @@ class RequestHandler {
       defaultHeaders.addAll(headers);
     }
 
-    return http.put(uri, headers: defaultHeaders, body: jsonEncode(body));
+    String requestBody = '';
+    try {
+      if (body == null) {
+        requestBody = '';
+      } else if (body is String) {
+        requestBody = body;
+      } else {
+        requestBody = jsonEncode(body);
+      }
+    } catch (e) {
+      requestBody = body.toString();
+    }
+
+    return http.put(uri, headers: defaultHeaders, body: requestBody);
   }
 
   Future<http.Response> delete(

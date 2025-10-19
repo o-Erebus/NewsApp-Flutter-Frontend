@@ -3,9 +3,12 @@ import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:provider/provider.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../Models/news_article.dart';
 import '../../Providers/tts_provider.dart';
 import '../../Providers/auth_provider.dart';
+import '../../Providers/history_provider.dart';
+import '../../Providers/ai_provider.dart';
 import 'widgets/tts_controls_widget.dart';
 
 class ArticleDetailPage extends StatefulWidget {
@@ -15,11 +18,14 @@ class ArticleDetailPage extends StatefulWidget {
 
   final bool isGlobalView;
 
+  final bool isHistoryView;
+
   const ArticleDetailPage({
     super.key,
     required this.article,
     required this.isCarouselView,
     this.isGlobalView = false, // Default to false for backward compatibility
+    this.isHistoryView = false, // Default to false for backward compatibility
   });
 
   @override
@@ -34,11 +40,31 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     super.initState();
     // Get the TTS provider instance early so we can use it in dispose
     _ttsProvider = Provider.of<TTSProvider>(context, listen: false);
+
+    // Record article read in history
+    _recordArticleRead();
+  }
+
+  /// Record the article as read in the user's history
+  Future<void> _recordArticleRead() async {
+    final authProvider = context.read<AuthProvider>();
+    if (authProvider.isAuthenticated) {
+      final historyProvider = context.read<HistoryProvider>();
+      await historyProvider.recordArticleRead(
+        articleId: widget.article.id,
+        articleTitle: widget.article.title,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final aiProvider = context.watch<AiProvider>();
+    final articleId = widget.article.id;
+    final isGeneratingSummary = aiProvider.isGenerating(articleId);
+    final summary = aiProvider.summaryFor(articleId);
+    final isSummaryVisible = aiProvider.isSummaryVisible(articleId);
     var herotag = '';
     if (widget.isGlobalView) {
       if (widget.isCarouselView) {
@@ -46,6 +72,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
       } else {
         herotag = 'GLOBAL_article_image_${widget.article.id}';
       }
+    } else if (widget.isHistoryView) {
+      herotag = 'HISTORY_article_image_${widget.article.id}';
     } else {
       if (widget.isCarouselView) {
         herotag = widget.article.imageUrl;
@@ -53,6 +81,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
         herotag = 'article_image_${widget.article.id}';
       }
     }
+
     return Scaffold(
       body: Stack(
         children: [
@@ -153,34 +182,87 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                 ),
                               ),
                             ),
-                            child: Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.person_outline,
-                                  size: 16,
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.person_outline,
+                                      size: 16,
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      widget.article.author,
+                                      style: theme.textTheme.labelMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w500,
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Icon(
+                                      Icons.calendar_today_outlined,
+                                      size: 16,
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      DateFormat.yMMMd().format(
+                                        widget.article.date,
+                                      ),
+                                      style: theme.textTheme.labelMedium
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                      // Add AI Button
+                                    ),
+
+                                    // AI Summarize Button
+                                  ],
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  widget.article.author,
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                    color: theme.colorScheme.onSurfaceVariant,
+                                const SizedBox(height: 8),
+                                ElevatedButton.icon(
+                                  onPressed: isGeneratingSummary
+                                      ? null
+                                      : () async {
+                                          final ai = context.read<AiProvider>();
+                                          if (summary == null) {
+                                            await ai.generateSummary(articleId);
+                                          } else {
+                                            // Toggle between showing the summary and the original article without calling the backend again
+                                            ai.toggleSummaryVisibility(
+                                              articleId,
+                                            );
+                                          }
+                                        },
+                                  icon: const Icon(
+                                    Icons.smart_toy_outlined,
+                                    size: 18,
                                   ),
-                                ),
-                                const SizedBox(width: 16),
-                                Icon(
-                                  Icons.calendar_today_outlined,
-                                  size: 16,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  DateFormat.yMMMd().format(
-                                    widget.article.date,
+                                  label: Text(
+                                    isGeneratingSummary
+                                        ? 'Thinking...'
+                                        : summary == null
+                                        ? 'AI'
+                                        : isSummaryVisible
+                                        ? 'Deactivate AI'
+                                        : 'Activate AI',
+                                    style: theme.textTheme.labelSmall,
                                   ),
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -202,11 +284,37 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const SizedBox(height: 20),
-                              // Placeholder body text
-                              Text(
-                                widget.article.text,
-                                style: theme.textTheme.bodyLarge,
-                              ),
+                              // If generating summary show loader, otherwise show summary (if available and requested) then full text
+                              if (isGeneratingSummary) ...[
+                                Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 24.0,
+                                    ),
+                                    child: LoadingAnimationWidget.dotsTriangle(
+                                      color: theme.colorScheme.primary,
+                                      size: 48,
+                                    ),
+                                  ),
+                                ),
+                              ] else if (summary != null &&
+                                  isSummaryVisible) ...[
+                                Text(
+                                  summary,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                const Divider(),
+                                // When in summary mode we show the generated summary above. The full article will be shown when _showSummary is false.
+                              ] else ...[
+                                // Default: show full article text
+                                Text(
+                                  widget.article.text,
+                                  style: theme.textTheme.bodyLarge,
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -243,6 +351,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     print('ArticleDetailPage: dispose method called');
     print('ArticleDetailPage: Calling _ttsProvider.reset()');
     _ttsProvider.reset();
+    context.read<AiProvider>().showOriginal(widget.article.id);
     print('ArticleDetailPage: _ttsProvider.reset() completed');
     super.dispose();
     print('ArticleDetailPage: dispose method completed');
