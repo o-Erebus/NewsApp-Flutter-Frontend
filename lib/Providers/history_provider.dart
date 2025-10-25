@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:finalyear/utils/request_handler.dart';
 import 'package:finalyear/utils/uri_utils.dart';
+import 'package:finalyear/constants/constants.dart';
 import '../Models/read_history_model.dart';
 
 class HistoryProvider with ChangeNotifier {
@@ -49,7 +50,7 @@ class HistoryProvider with ChangeNotifier {
         return false;
       }
 
-      final uri = UriUtils.buildUri('/users/history');
+      final uri = UriUtils.buildUri(Constants.userHistoryEndpoint);
 
       final Map<String, dynamic> body = {
         'article_id': articleId,
@@ -111,7 +112,7 @@ class HistoryProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      final uri = UriUtils.buildUri('/users/history', {
+      final uri = UriUtils.buildUri(Constants.userHistoryEndpoint, {
         'page': _currentPage.toString(),
         'limit': _pageSize.toString(),
       });

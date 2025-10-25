@@ -6,44 +6,109 @@ import '../constants/constants.dart';
 import '../utils/request_handler.dart';
 import '../utils/uri_utils.dart';
 
-/// Provider that manages AI-powered article summaries.
+/// Provider that manages AI-powered article analysis.
 ///
-/// It caches summaries per article, tracks loading state for each article,
-/// and keeps whether the summary view is currently active so UI widgets can
-/// toggle between the summary and the full article text without re-fetching.
+/// It caches analysis results (summary, political bias, emotional analysis) per article,
+/// tracks loading state for each article, and keeps whether the analysis view is
+/// currently active so UI widgets can toggle between analysis and full article text
+/// without re-fetching.
 class AiProvider with ChangeNotifier {
   final RequestHandler _requestHandler = RequestHandler();
 
-  final Map<String, String> _summaries = {};
+  // Caches for different analysis components
+  final Map<String, Map<String, dynamic>> _analysis = {};
   final Set<String> _loadingArticles = {};
-  final Map<String, bool> _summaryVisibility = {};
+  final Map<String, bool> _analysisVisibility = {};
+
+  /// Returns the cached analysis for the given [articleId], if available.
+  Map<String, dynamic>? analysisFor(String articleId) => _analysis[articleId];
 
   /// Returns the cached summary for the given [articleId], if available.
-  String? summaryFor(String articleId) => _summaries[articleId];
+  String? summaryFor(String articleId) =>
+      _analysis[articleId]?['summary'] as String?;
 
-  /// Indicates whether the summary is currently being generated for [articleId].
+  /// Returns the emotional analysis for the given [articleId], if available.
+  Map<String, dynamic>? emotionalAnalysisFor(String articleId) =>
+      _analysis[articleId]?['emotionalAnalysis'] as Map<String, dynamic>?;
+
+  // --- Convenience accessors for emotionalAnalysis ---
+  String? primaryEmotion(String articleId) =>
+      emotionalAnalysisFor(articleId)?['primaryEmotion'] as String?;
+
+  String? secondaryEmotion(String articleId) =>
+      emotionalAnalysisFor(articleId)?['secondaryEmotion'] as String?;
+
+  List<String>? indicativeQuotes(String articleId) {
+    final quotes = emotionalAnalysisFor(
+      articleId,
+    )?['justification']?['indicativeQuotes'];
+    if (quotes is List) return quotes.map((e) => e.toString()).toList();
+    return null;
+  }
+
+  String? overallTone(String articleId) =>
+      emotionalAnalysisFor(articleId)?['justification']?['overallTone']
+          as String?;
+
+  // --- Convenience accessors for politicalBias ---
+  Map<String, dynamic>? politicalBiasFor(String articleId) =>
+      _analysis[articleId]?['politicalBias'] as Map<String, dynamic>?;
+
+  String? biasClassification(String articleId) =>
+      politicalBiasFor(articleId)?['classification'] as String?;
+
+  List<String>? loadedLanguage(String articleId) {
+    final list = politicalBiasFor(
+      articleId,
+    )?['justification']?['loadedLanguage'];
+    if (list is List) return list.map((e) => e.toString()).toList();
+    return null;
+  }
+
+  List<String>? framingAndHeadline(String articleId) {
+    final list = politicalBiasFor(
+      articleId,
+    )?['justification']?['framingAndHeadline'];
+    if (list is List) return list.map((e) => e.toString()).toList();
+    return null;
+  }
+
+  List<String>? sourceAndStorySelection(String articleId) {
+    final list = politicalBiasFor(
+      articleId,
+    )?['justification']?['sourceAndStorySelection'];
+    if (list is List) return list.map((e) => e.toString()).toList();
+    return null;
+  }
+
+  /// Indicates whether the analysis is currently being generated for [articleId].
   bool isGenerating(String articleId) => _loadingArticles.contains(articleId);
 
-  /// Whether the summary should be shown instead of the full article text.
-  bool isSummaryVisible(String articleId) =>
-      _summaryVisibility[articleId] ?? false;
+  /// Whether the analysis should be shown instead of the full article text.
+  bool isAnalysisVisible(String articleId) =>
+      _analysisVisibility[articleId] ?? false;
 
-  /// Request an AI summary for the given [articleId].
+  /// Request comprehensive AI analysis for the given [articleId].
   ///
-  /// The summary is cached and the loader is displayed for at least two seconds
-  /// to preserve the existing UX. On success, the summary view becomes active.
-  Future<void> generateSummary(String articleId) async {
+  /// Performs:
+  /// 1. High-fidelity summary (1-2 paragraphs)
+  /// 2. Political bias detection (5-point scale)
+  /// 3. Emotional analysis (primary and secondary emotions)
+  ///
+  /// The analysis is cached and the loader is displayed for at least two seconds
+  /// to preserve the existing UX. On success, the analysis view becomes active.
+  Future<void> generateAnalysis(String articleId) async {
     if (_loadingArticles.contains(articleId)) {
       return;
     }
 
     _loadingArticles.add(articleId);
-    // Reset visibility while we fetch a fresh summary.
-    _summaryVisibility[articleId] = false;
+    // Reset visibility while we fetch a fresh analysis.
+    _analysisVisibility[articleId] = false;
     notifyListeners();
 
     try {
-      final uri = UriUtils.buildUri('${Constants.articlesEndpoint}summarize');
+      final uri = UriUtils.buildUri(Constants.aiAnalyzeEndpoint);
       final requestFuture = _requestHandler.post(
         uri.toString(),
         body: {'article_id': articleId},
@@ -57,57 +122,85 @@ class AiProvider with ChangeNotifier {
 
       if (resp != null && resp.statusCode == 200) {
         final data = json.decode(resp.body) as Map<String, dynamic>;
-        final summary = data['summary'] as String?;
-        _summaries[articleId] = summary ?? 'No summary available.';
-        _summaryVisibility[articleId] = true;
+
+        // Extract the analysis from the response
+        // Backend returns: summary, politicalBias, emotionalAnalysis
+        final analysis = {
+          'summary': data['summary'] as String?,
+          'politicalBias': data['politicalBias'] as Map<String, dynamic>?,
+          'emotionalAnalysis':
+              data['emotionalAnalysis'] as Map<String, dynamic>?,
+        };
+
+        _analysis[articleId] = analysis;
+        _analysisVisibility[articleId] = true;
       } else if (resp != null) {
-        _summaries[articleId] =
-            'Failed to generate summary (code ${resp.statusCode}).';
-        _summaryVisibility[articleId] = false;
+        _analysis[articleId] = {
+          'error': 'Failed to generate analysis (code ${resp.statusCode}).',
+        };
+        _analysisVisibility[articleId] = false;
       } else {
-        _summaries[articleId] = 'Failed to generate summary.';
-        _summaryVisibility[articleId] = false;
+        _analysis[articleId] = {'error': 'Failed to generate analysis.'};
+        _analysisVisibility[articleId] = false;
       }
     } catch (e) {
-      _summaries[articleId] = 'Error generating summary: $e';
-      _summaryVisibility[articleId] = false;
+      _analysis[articleId] = {'error': 'Error generating analysis: $e'};
+      _analysisVisibility[articleId] = false;
     } finally {
       _loadingArticles.remove(articleId);
       notifyListeners();
     }
   }
 
-  /// Toggle between summary view and original article for [articleId].
-  void toggleSummaryVisibility(String articleId) {
-    if (!_summaries.containsKey(articleId)) {
+  /// Legacy method for backward compatibility - calls generateAnalysis
+  @Deprecated('Use generateAnalysis instead')
+  Future<void> generateSummary(String articleId) async {
+    return generateAnalysis(articleId);
+  }
+
+  /// Toggle between analysis view and original article for [articleId].
+  void toggleAnalysisVisibility(String articleId) {
+    if (!_analysis.containsKey(articleId)) {
       return;
     }
-    final current = _summaryVisibility[articleId] ?? false;
-    _summaryVisibility[articleId] = !current;
+    final current = _analysisVisibility[articleId] ?? false;
+    _analysisVisibility[articleId] = !current;
     notifyListeners();
   }
 
-  /// Ensure the original article text is shown (no summary overlay).
+  /// Legacy method for backward compatibility
+  @Deprecated('Use toggleAnalysisVisibility instead')
+  void toggleSummaryVisibility(String articleId) {
+    return toggleAnalysisVisibility(articleId);
+  }
+
+  /// Ensure the original article text is shown (no analysis overlay).
   void showOriginal(String articleId) {
-    if (_summaryVisibility[articleId] == true) {
-      _summaryVisibility[articleId] = false;
+    if (_analysisVisibility[articleId] == true) {
+      _analysisVisibility[articleId] = false;
       notifyListeners();
     }
   }
 
-  /// Clears the cached summary and state for a particular article.
-  void clearSummary(String articleId) {
-    _summaries.remove(articleId);
+  /// Clears the cached analysis and state for a particular article.
+  void clearAnalysis(String articleId) {
+    _analysis.remove(articleId);
     _loadingArticles.remove(articleId);
-    _summaryVisibility.remove(articleId);
+    _analysisVisibility.remove(articleId);
     notifyListeners();
   }
 
-  /// Clears all cached summaries and state.
+  /// Legacy method for backward compatibility
+  @Deprecated('Use clearAnalysis instead')
+  void clearSummary(String articleId) {
+    return clearAnalysis(articleId);
+  }
+
+  /// Clears all cached analysis and state.
   void clearAll() {
-    _summaries.clear();
+    _analysis.clear();
     _loadingArticles.clear();
-    _summaryVisibility.clear();
+    _analysisVisibility.clear();
     notifyListeners();
   }
 }

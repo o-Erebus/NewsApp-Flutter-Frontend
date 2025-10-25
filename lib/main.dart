@@ -1,4 +1,6 @@
+import 'package:finalyear/Pages/Podcast/podcastpage.dart';
 import 'package:finalyear/Providers/news_provider.dart';
+import 'package:finalyear/Providers/podcast_provider.dart';
 import 'package:finalyear/nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
@@ -6,7 +8,6 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:finalyear/Pages/Global/globalpage.dart';
-import 'Pages/podcastpage.dart';
 import 'Pages/Profile/profilepage.dart';
 import 'Providers/navigation_provider.dart';
 import 'Providers/auth_provider.dart';
@@ -40,6 +41,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => HistoryProvider()),
         ChangeNotifierProvider(create: (_) => AiProvider()),
+        ChangeNotifierProvider(create: (_) => PodcastProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

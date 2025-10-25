@@ -10,6 +10,8 @@ import '../../Providers/auth_provider.dart';
 import '../../Providers/history_provider.dart';
 import '../../Providers/ai_provider.dart';
 import 'widgets/tts_controls_widget.dart';
+import 'widgets/emotional_analysis_modal.dart';
+import 'widgets/political_bias_modal.dart';
 
 class ArticleDetailPage extends StatefulWidget {
   final NewsArticle article;
@@ -61,10 +63,11 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final aiProvider = context.watch<AiProvider>();
+    final authProvider = context.watch<AuthProvider>();
     final articleId = widget.article.id;
-    final isGeneratingSummary = aiProvider.isGenerating(articleId);
+    final isGeneratingAnalysis = aiProvider.isGenerating(articleId);
     final summary = aiProvider.summaryFor(articleId);
-    final isSummaryVisible = aiProvider.isSummaryVisible(articleId);
+    final isAnalysisVisible = aiProvider.isAnalysisVisible(articleId);
     var herotag = '';
     if (widget.isGlobalView) {
       if (widget.isCarouselView) {
@@ -227,44 +230,247 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                   ],
                                 ),
                                 const SizedBox(height: 8),
-                                ElevatedButton.icon(
-                                  onPressed: isGeneratingSummary
-                                      ? null
-                                      : () async {
-                                          final ai = context.read<AiProvider>();
-                                          if (summary == null) {
-                                            await ai.generateSummary(articleId);
-                                          } else {
-                                            // Toggle between showing the summary and the original article without calling the backend again
-                                            ai.toggleSummaryVisibility(
-                                              articleId,
-                                            );
-                                          }
-                                        },
-                                  icon: const Icon(
-                                    Icons.smart_toy_outlined,
-                                    size: 18,
-                                  ),
-                                  label: Text(
-                                    isGeneratingSummary
-                                        ? 'Thinking...'
-                                        : summary == null
-                                        ? 'AI'
-                                        : isSummaryVisible
-                                        ? 'Deactivate AI'
-                                        : 'Activate AI',
-                                    style: theme.textTheme.labelSmall,
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 8,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                ),
+                                // Show AI button only for authenticated users
+                                authProvider.isAuthenticated
+                                    ? ElevatedButton.icon(
+                                        onPressed: isGeneratingAnalysis
+                                            ? null
+                                            : () async {
+                                                final ai = context
+                                                    .read<AiProvider>();
+                                                if (summary == null) {
+                                                  await ai.generateAnalysis(
+                                                    articleId,
+                                                  );
+                                                } else {
+                                                  // Toggle between showing the analysis and the original article without calling the backend again
+                                                  ai.toggleAnalysisVisibility(
+                                                    articleId,
+                                                  );
+                                                }
+                                              },
+                                        icon: const Icon(
+                                          Icons.smart_toy_outlined,
+                                          size: 18,
+                                        ),
+                                        label: Text(
+                                          isGeneratingAnalysis
+                                              ? 'Thinking...'
+                                              : summary == null
+                                              ? 'AI'
+                                              : isAnalysisVisible
+                                              ? 'Deactivate AI'
+                                              : 'Activate AI',
+                                          style: theme.textTheme.labelSmall,
+                                        ),
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 8,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    : const SizedBox.shrink(),
+                                isAnalysisVisible
+                                    ? Padding(
+                                        padding: const EdgeInsets.only(
+                                          top: 12.0,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  // Show emotional analysis details
+                                                  final primary =
+                                                      aiProvider.primaryEmotion(
+                                                        articleId,
+                                                      ) ??
+                                                      'Unknown';
+                                                  final secondary =
+                                                      aiProvider
+                                                          .secondaryEmotion(
+                                                            articleId,
+                                                          ) ??
+                                                      'Unknown';
+                                                  final quotes =
+                                                      aiProvider
+                                                          .indicativeQuotes(
+                                                            articleId,
+                                                          ) ??
+                                                      <String>[];
+                                                  final overall =
+                                                      aiProvider.overallTone(
+                                                        articleId,
+                                                      ) ??
+                                                      '';
+
+                                                  showModalBottomSheet(
+                                                    context: context,
+                                                    isScrollControlled: true,
+                                                    shape: const RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.vertical(
+                                                            top:
+                                                                Radius.circular(
+                                                                  16,
+                                                                ),
+                                                          ),
+                                                    ),
+                                                    builder: (ctx) =>
+                                                        EmotionalAnalysisModal(
+                                                          primary: primary,
+                                                          secondary: secondary,
+                                                          quotes: quotes,
+                                                          overall: overall,
+                                                        ),
+                                                  );
+                                                },
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 10,
+                                                        horizontal: 12,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: theme
+                                                        .colorScheme
+                                                        .surfaceVariant,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        'Emotion',
+                                                        style: theme
+                                                            .textTheme
+                                                            .labelSmall,
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Text(
+                                                        aiProvider
+                                                                .primaryEmotion(
+                                                                  articleId,
+                                                                ) ??
+                                                            '—',
+                                                        style: theme
+                                                            .textTheme
+                                                            .bodyLarge,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  // Show political bias details
+                                                  final classification =
+                                                      aiProvider
+                                                          .biasClassification(
+                                                            articleId,
+                                                          ) ??
+                                                      'Unknown';
+                                                  final loaded =
+                                                      aiProvider.loadedLanguage(
+                                                        articleId,
+                                                      ) ??
+                                                      <String>[];
+                                                  final framing =
+                                                      aiProvider
+                                                          .framingAndHeadline(
+                                                            articleId,
+                                                          ) ??
+                                                      <String>[];
+                                                  final sources =
+                                                      aiProvider
+                                                          .sourceAndStorySelection(
+                                                            articleId,
+                                                          ) ??
+                                                      <String>[];
+
+                                                  showModalBottomSheet(
+                                                    context: context,
+                                                    isScrollControlled: true,
+                                                    shape: const RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.vertical(
+                                                            top:
+                                                                Radius.circular(
+                                                                  16,
+                                                                ),
+                                                          ),
+                                                    ),
+                                                    builder: (ctx) =>
+                                                        PoliticalBiasModal(
+                                                          classification:
+                                                              classification,
+                                                          loadedLanguage:
+                                                              loaded,
+                                                          framing: framing,
+                                                          sources: sources,
+                                                        ),
+                                                  );
+                                                },
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 10,
+                                                        horizontal: 12,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: theme
+                                                        .colorScheme
+                                                        .surfaceVariant,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        'Bias',
+                                                        style: theme
+                                                            .textTheme
+                                                            .labelSmall,
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Text(
+                                                        aiProvider
+                                                                .biasClassification(
+                                                                  articleId,
+                                                                ) ??
+                                                            '—',
+                                                        style: theme
+                                                            .textTheme
+                                                            .bodyLarge,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : const SizedBox.shrink(),
                               ],
                             ),
                           ),
@@ -284,8 +490,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const SizedBox(height: 20),
-                              // If generating summary show loader, otherwise show summary (if available and requested) then full text
-                              if (isGeneratingSummary) ...[
+                              // If generating analysis show loader, otherwise show analysis (if available and requested) then full text
+                              if (isGeneratingAnalysis) ...[
                                 Center(
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
@@ -298,7 +504,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                   ),
                                 ),
                               ] else if (summary != null &&
-                                  isSummaryVisible) ...[
+                                  isAnalysisVisible) ...[
                                 Text(
                                   summary,
                                   style: theme.textTheme.bodyLarge?.copyWith(
@@ -307,7 +513,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                 ),
                                 const SizedBox(height: 12),
                                 const Divider(),
-                                // When in summary mode we show the generated summary above. The full article will be shown when _showSummary is false.
+                                // When in analysis mode we show the generated analysis above. The full article will be shown when _showAnalysis is false.
                               ] else ...[
                                 // Default: show full article text
                                 Text(
