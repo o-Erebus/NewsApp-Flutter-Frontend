@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:finalyear/Providers/podcast_provider.dart';
+
+import '../../../Models/podcast_model.dart' as pm;
 
 class CreatePodcastPage extends StatefulWidget {
-  const CreatePodcastPage({super.key});
+  final pm.Podcast? existingPodcast;
+  const CreatePodcastPage({super.key, this.existingPodcast});
 
   @override
   State<CreatePodcastPage> createState() => _CreatePodcastPageState();
@@ -11,21 +16,37 @@ class _CreatePodcastPageState extends State<CreatePodcastPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
-  late TextEditingController _categoryController;
+  late TextEditingController _audioUrlController;
+  late TextEditingController _imageUrlController;
+  bool _isPublic = true;
+  bool _isLoading = false;
+  late final bool _isEdit;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController();
     _descriptionController = TextEditingController();
-    _categoryController = TextEditingController();
+    _audioUrlController = TextEditingController();
+    _imageUrlController = TextEditingController();
+    _isEdit = widget.existingPodcast != null;
+
+    if (_isEdit) {
+      final p = widget.existingPodcast!;
+      _titleController.text = p.title;
+      _descriptionController.text = p.description;
+      _audioUrlController.text = p.audioUrl;
+      _imageUrlController.text = p.imageUrl;
+      _isPublic = p.isPublic;
+    }
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _categoryController.dispose();
+    _audioUrlController.dispose();
+    _imageUrlController.dispose();
     super.dispose();
   }
 
@@ -66,7 +87,7 @@ class _CreatePodcastPageState extends State<CreatePodcastPage> {
                         ),
                       ),
                       Text(
-                        'Create Podcast',
+                        _isEdit ? 'Edit Podcast' : 'Create Podcast',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               color: colorScheme.onSurface,
@@ -161,9 +182,9 @@ class _CreatePodcastPageState extends State<CreatePodcastPage> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Category Field
+                        // Audio URL Field
                         Text(
-                          'Category',
+                          'Audio URL',
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(
                                 color: colorScheme.onSurface,
@@ -172,10 +193,10 @@ class _CreatePodcastPageState extends State<CreatePodcastPage> {
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
-                          controller: _categoryController,
+                          controller: _audioUrlController,
                           style: TextStyle(color: colorScheme.onSurface),
                           decoration: InputDecoration(
-                            hintText: 'Select or enter category',
+                            hintText: 'https://example.com/audio.mp3',
                             hintStyle: TextStyle(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -192,46 +213,252 @@ class _CreatePodcastPageState extends State<CreatePodcastPage> {
                           ),
                           validator: (value) {
                             if (value?.isEmpty ?? true) {
-                              return 'Please select a category';
+                              return 'Please enter audio URL';
+                            }
+                            if (!value!.startsWith('http')) {
+                              return 'Please enter a valid URL';
                             }
                             return null;
                           },
                         ),
+                        const SizedBox(height: 24),
+
+                        // Image URL Field
+                        Text(
+                          'Podcast Image URL',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                color: colorScheme.onSurface,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _imageUrlController,
+                          style: TextStyle(color: colorScheme.onSurface),
+                          decoration: InputDecoration(
+                            hintText: 'https://example.com/image.png',
+                            hintStyle: TextStyle(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            filled: true,
+                            fillColor: colorScheme.surfaceContainer,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value?.isEmpty ?? true) {
+                              return 'Please enter image URL';
+                            }
+                            if (!value!.startsWith('http')) {
+                              return 'Please enter a valid URL';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Public/Private Toggle
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Make Podcast Public',
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurface,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                            StatefulBuilder(
+                              builder: (context, setModalState) => Switch(
+                                value: _isPublic,
+                                onChanged: (value) {
+                                  setModalState(() {
+                                    _isPublic = value;
+                                  });
+                                },
+                                activeColor: colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 40),
 
-                        // Create Button
+                        // Create / Update Button
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () {
-                              if (_formKey.currentState!.validate()) {
-                                // TODO: Handle podcast creation
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Podcast created successfully!',
-                                    ),
-                                  ),
-                                );
-                                Navigator.of(context).pop();
-                              }
-                            },
+                            onPressed: _isLoading
+                                ? null
+                                : () async {
+                                    if (_formKey.currentState!.validate()) {
+                                      setState(() {
+                                        _isLoading = true;
+                                      });
+
+                                      try {
+                                        if (_isEdit) {
+                                          // Update existing podcast
+                                          final success = await context
+                                              .read<PodcastProvider>()
+                                              .updatePodcast(
+                                                podcastId:
+                                                    widget.existingPodcast!.id,
+                                                title: _titleController.text,
+                                                description:
+                                                    _descriptionController.text,
+                                                imageUrl:
+                                                    _imageUrlController.text,
+                                                isPublic: _isPublic,
+                                              );
+
+                                          if (mounted) {
+                                            setState(() {
+                                              _isLoading = false;
+                                            });
+
+                                            if (success) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Podcast updated',
+                                                  ),
+                                                  duration: Duration(
+                                                    seconds: 2,
+                                                  ),
+                                                ),
+                                              );
+                                              Navigator.of(context).pop();
+                                            } else {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Failed to update podcast',
+                                                  ),
+                                                  duration: Duration(
+                                                    seconds: 2,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          }
+                                        } else {
+                                          // Create new podcast
+                                          final podcastId = await context
+                                              .read<PodcastProvider>()
+                                              .createPodcast(
+                                                title: _titleController.text,
+                                                description:
+                                                    _descriptionController.text,
+                                                audioUrl:
+                                                    _audioUrlController.text,
+                                                imageUrl:
+                                                    _imageUrlController.text,
+                                                isPublic: _isPublic,
+                                              );
+
+                                          if (mounted) {
+                                            setState(() {
+                                              _isLoading = false;
+                                            });
+
+                                            if (podcastId != null) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Podcast created successfully!',
+                                                  ),
+                                                  duration: Duration(
+                                                    seconds: 2,
+                                                  ),
+                                                ),
+                                              );
+                                              Navigator.of(context).pop();
+                                              // Refresh the user's podcasts
+                                              context
+                                                  .read<PodcastProvider>()
+                                                  .fetchUserPodcasts();
+                                            } else {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Failed to create podcast',
+                                                  ),
+                                                  duration: Duration(
+                                                    seconds: 2,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          }
+                                        }
+                                      } catch (e) {
+                                        if (mounted) {
+                                          setState(() {
+                                            _isLoading = false;
+                                          });
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Error: $e'),
+                                              duration: const Duration(
+                                                seconds: 2,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    }
+                                  },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: colorScheme.primary,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
+                              disabledBackgroundColor: colorScheme.primary
+                                  .withOpacity(0.5),
                             ),
-                            child: Text(
-                              'Create Podcast',
-                              style: Theme.of(context).textTheme.labelLarge
-                                  ?.copyWith(
-                                    color: colorScheme.onPrimary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
+                            child: _isLoading
+                                ? SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        colorScheme.onPrimary,
+                                      ),
+                                    ),
+                                  )
+                                : Text(
+                                    _isEdit
+                                        ? 'Update Podcast'
+                                        : 'Create Podcast',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelLarge
+                                        ?.copyWith(
+                                          color: colorScheme.onPrimary,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
                                   ),
-                            ),
                           ),
                         ),
                         const SizedBox(height: 20),

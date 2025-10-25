@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:finalyear/Providers/navigation_provider.dart';
+
 import 'package:finalyear/Providers/podcast_provider.dart';
 import 'package:finalyear/Providers/auth_provider.dart';
 import 'widgets/mini_player.dart';
 import 'widgets/featured_podcast_section.dart';
 import 'widgets/trending_podcasts_section.dart';
-import 'widgets/top_channels_section.dart';
-import 'widgets/my_podcasts_page.dart';
+import 'widgets/my_podcasts_section.dart';
+// import 'widgets/top_channels_section.dart';
 
 class PodcastPage extends StatefulWidget {
   const PodcastPage({super.key});
@@ -16,13 +18,49 @@ class PodcastPage extends StatefulWidget {
 }
 
 class _PodcastPageState extends State<PodcastPage> {
+  late FocusNode _searchFocusNode;
+  bool _showTrending = true;
+  bool _navListenerAttached = false;
+  VoidCallback? _navListener;
+
   @override
   void initState() {
     super.initState();
+    _searchFocusNode = FocusNode();
     // Initialize podcast data when page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PodcastProvider>().refreshAll();
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_navListenerAttached) {
+      final navProvider = context.read<NavigationProvider>();
+      _navListener = () {
+        // If the user navigated away from Podcast tab, unfocus the search
+        if (navProvider.selectedIndex != 2) {
+          // Unfocus the local FocusNode and clear any primary focus
+          _searchFocusNode.unfocus();
+          FocusScope.of(context).unfocus();
+        }
+      };
+      navProvider.addListener(_navListener!);
+      _navListenerAttached = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    // Remove navigation listener if attached
+    if (_navListenerAttached) {
+      try {
+        context.read<NavigationProvider>().removeListener(_navListener!);
+      } catch (_) {}
+    }
+    _searchFocusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -48,16 +86,18 @@ class _PodcastPageState extends State<PodcastPage> {
                       _buildSearchBar(context),
                       const SizedBox(height: 20),
 
+                      // Toggle Pills (Trending / My Podcasts)
+                      
                       // Featured Podcast Section
                       const FeaturedPodcastSection(),
                       const SizedBox(height: 30),
-
-                      // Trending Section
-                      const TrendingPodcastsSection(),
-                      const SizedBox(height: 30),
-
-                      // Top Channels Section
-                      const TopChannelsSection(),
+                      _buildTogglePills(context),
+                      const SizedBox(height: 20),
+                      // Selected Section (Trending or My Podcasts)
+                      if (_showTrending)
+                        const TrendingPodcastsSection()
+                      else
+                        const MyPodcastsSection(),
                       const SizedBox(height: 30),
 
                       // Extra padding to prevent content from being hidden by mini player
@@ -111,38 +151,69 @@ class _PodcastPageState extends State<PodcastPage> {
               ),
             ],
           ),
-          // Profile icon button
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MyPodcastsPage()),
-              );
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: colorScheme.primary,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTogglePills(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _showTrending = true),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: _showTrending
+                      ? colorScheme.primary
+                      : colorScheme.surfaceContainer,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Center(
+                  child: Text(
+                    'Trending',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: _showTrending
+                          ? colorScheme.onPrimary
+                          : colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ],
+                ),
               ),
-              padding: const EdgeInsets.all(12),
-              child: Center(
-                child: Text(
-                  (authProvider.user?.displayName ??
-                          authProvider.user?.email ??
-                          'U')
-                      .substring(0, 1)
-                      .toUpperCase(),
-                  style: TextStyle(
-                    color: colorScheme.onPrimary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                // When switching to My Podcasts, ensure we load the user's podcasts
+                setState(() => _showTrending = false);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  context.read<PodcastProvider>().fetchUserPodcasts();
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: !_showTrending
+                      ? colorScheme.primary
+                      : colorScheme.surfaceContainer,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Center(
+                  child: Text(
+                    'My Podcasts',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: !_showTrending
+                          ? colorScheme.onPrimary
+                          : colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -158,6 +229,7 @@ class _PodcastPageState extends State<PodcastPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: TextField(
+        focusNode: _searchFocusNode,
         decoration: InputDecoration(
           hintText: 'Search podcasts...',
           prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),

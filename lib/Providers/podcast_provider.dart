@@ -1,25 +1,24 @@
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import '../Models/podcast_model.dart';
+import '../Services/podcast_api_service.dart';
 import 'dart:developer' as developer;
 import 'dart:async';
 
 class PodcastProvider with ChangeNotifier {
   // Audio player instance
   late final AudioPlayer _audioPlayer;
+  final PodcastApiService _apiService = PodcastApiService();
 
   // State variables
   final List<Podcast> _trendingPodcasts = [];
-  final List<Podcast> _featuredPodcasts = [];
-  final List<PodcastChannel> _topChannels = [];
   final List<Podcast> _playHistory = [];
+  final List<Podcast> _userPodcasts = [];
 
   Podcast? _currentPodcast;
   bool _isPlaying = false;
   bool _isLoading = false;
   bool _isFetchingTrending = false;
-  bool _isFetchingFeatured = false;
-  bool _isFetchingChannels = false;
 
   double _currentPosition = 0;
   double _totalDuration = 0;
@@ -32,19 +31,15 @@ class PodcastProvider with ChangeNotifier {
 
   // Getters
   List<Podcast> get trendingPodcasts => [..._trendingPodcasts];
-  List<Podcast> get featuredPodcasts => [..._featuredPodcasts];
-  List<PodcastChannel> get topChannels => [..._topChannels];
   List<Podcast> get playHistory => [..._playHistory];
 
-  // Mock user's created podcasts
-  List<Podcast> get userPodcasts => _getMockUserPodcasts();
+  // User's created podcasts
+  List<Podcast> get userPodcasts => [..._userPodcasts];
 
   Podcast? get currentPodcast => _currentPodcast;
   bool get isPlaying => _isPlaying;
   bool get isLoading => _isLoading;
   bool get isFetchingTrending => _isFetchingTrending;
-  bool get isFetchingFeatured => _isFetchingFeatured;
-  bool get isFetchingChannels => _isFetchingChannels;
   String? get audioError => _audioError;
 
   double get currentPosition => _currentPosition;
@@ -86,28 +81,20 @@ class PodcastProvider with ChangeNotifier {
     });
   }
 
-  /// Initialize with mock data
+  /// Initialize with API data
   Future<void> _initializeMockData() async {
     _isFetchingTrending = true;
-    _isFetchingFeatured = true;
-    _isFetchingChannels = true;
     notifyListeners();
 
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      _trendingPodcasts.addAll(_getMockTrendingPodcasts());
-      _featuredPodcasts.addAll(_getMockFeaturedPodcasts());
-      _topChannels.addAll(_getMockTopChannels());
-
+      final trendingPodcasts = await _apiService.getTrendingPodcasts();
+      _trendingPodcasts.addAll(trendingPodcasts);
       notifyListeners();
     } catch (e) {
       developer.log('Error initializing podcast data: $e');
+      _audioError = 'Failed to load podcasts. Please check your connection.';
     } finally {
       _isFetchingTrending = false;
-      _isFetchingFeatured = false;
-      _isFetchingChannels = false;
       notifyListeners();
     }
   }
@@ -118,14 +105,21 @@ class PodcastProvider with ChangeNotifier {
       _isLoading = true;
       _audioError = null;
       _currentPodcast = podcast;
+      _currentPosition = 0;
+      // Use the duration from backend if available, otherwise 0
+      _totalDuration = podcast.duration > 0 ? podcast.duration.toDouble() : 0.0;
       notifyListeners();
 
       developer.log('Starting to load audio from: ${podcast.audioUrl}');
+      developer.log('Duration from backend: ${podcast.duration} seconds');
 
       // Load the audio file from the URL
+      // This fetches metadata immediately without starting playback
       await _audioPlayer.setUrl(podcast.audioUrl);
 
-      developer.log('Audio loaded successfully, starting playback');
+      developer.log(
+        'Audio loaded, duration from backend: $_totalDuration seconds',
+      );
 
       // Start playing
       await _audioPlayer.play();
@@ -230,47 +224,28 @@ class PodcastProvider with ChangeNotifier {
     }
   }
 
-  /// Refresh trending podcasts (simulates API call)
+  /// Refresh trending podcasts
   Future<void> refreshTrendingPodcasts() async {
     _isFetchingTrending = true;
     notifyListeners();
 
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(milliseconds: 800));
+      final podcasts = await _apiService.getTrendingPodcasts();
       _trendingPodcasts.clear();
-      _trendingPodcasts.addAll(_getMockTrendingPodcasts());
+      _trendingPodcasts.addAll(podcasts);
       notifyListeners();
     } catch (e) {
       developer.log('Error refreshing trending podcasts: $e');
+      _audioError = 'Failed to refresh trending podcasts';
     } finally {
       _isFetchingTrending = false;
       notifyListeners();
     }
   }
 
-  /// Refresh featured podcasts (simulates API call)
-  Future<void> refreshFeaturedPodcasts() async {
-    _isFetchingFeatured = true;
-    notifyListeners();
-
-    try {
-      // Simulate network delay
-      await Future.delayed(const Duration(milliseconds: 800));
-      _featuredPodcasts.clear();
-      _featuredPodcasts.addAll(_getMockFeaturedPodcasts());
-      notifyListeners();
-    } catch (e) {
-      developer.log('Error refreshing featured podcasts: $e');
-    } finally {
-      _isFetchingFeatured = false;
-      notifyListeners();
-    }
-  }
-
   /// Refresh all data
   Future<void> refreshAll() async {
-    await Future.wait([refreshTrendingPodcasts(), refreshFeaturedPodcasts()]);
+    await refreshTrendingPodcasts();
   }
 
   /// Format duration for display
@@ -285,168 +260,104 @@ class PodcastProvider with ChangeNotifier {
     return '$minutes:$seconds';
   }
 
-  /// Mock data generators
-  List<Podcast> _getMockTrendingPodcasts() {
-    const String sampleAudioUrl =
-        'asset:///assets/sample-type-rap-beat-lucky-night-193659.mp3';
-    return [
-      Podcast(
-        id: '1',
-        title: 'The Future of AI in 2025',
-        channelName: 'Tech Talks',
-        description:
-            'Exploring the latest developments in artificial intelligence and machine learning. Join us as we discuss the future of AI technology.',
-        imageUrl: 'https://via.placeholder.com/150?text=AI+2025',
-        audioUrl: sampleAudioUrl,
-        duration: 2723, // 45:23
-        listenerCount: 234000,
-        publishedDate: DateTime.now().subtract(const Duration(days: 2)),
-        rating: 4.8,
-      ),
-      Podcast(
-        id: '2',
-        title: 'Building Mental Resilience',
-        channelName: 'Mind Matters',
-        description:
-            'Strategies for developing mental toughness and emotional resilience in today\'s challenging world.',
-        imageUrl: 'https://via.placeholder.com/150?text=Mental',
-        audioUrl: sampleAudioUrl,
-        duration: 2295, // 38:15
-        listenerCount: 189000,
-        publishedDate: DateTime.now().subtract(const Duration(days: 3)),
-        rating: 4.6,
-      ),
-      Podcast(
-        id: '3',
-        title: 'Startup Stories: Zero to Hero',
-        channelName: 'Founders',
-        description:
-            'Real stories from founders who built successful startups from scratch. Hear their journey, challenges, and lessons learned.',
-        imageUrl: 'https://via.placeholder.com/150?text=Startup',
-        audioUrl: sampleAudioUrl,
-        duration: 3160, // 52:40
-        listenerCount: 167000,
-        publishedDate: DateTime.now().subtract(const Duration(days: 1)),
-        rating: 4.9,
-      ),
-      Podcast(
-        id: '4',
-        title: 'Crypto Revolution 2025',
-        channelName: 'Web3 Daily',
-        description:
-            'Breaking news and analysis on blockchain technology, cryptocurrencies, and decentralized finance.',
-        imageUrl: 'https://via.placeholder.com/150?text=Crypto',
-        audioUrl: sampleAudioUrl,
-        duration: 1758, // 29:18
-        listenerCount: 145000,
-        publishedDate: DateTime.now().subtract(const Duration(days: 4)),
-        rating: 4.5,
-      ),
-    ];
+  /// Fetch user's podcasts
+  Future<void> fetchUserPodcasts() async {
+    try {
+      final podcasts = await _apiService.getMyPodcasts();
+      _userPodcasts.clear();
+      _userPodcasts.addAll(podcasts);
+      notifyListeners();
+    } catch (e) {
+      developer.log('Error fetching user podcasts: $e');
+      _audioError = 'Failed to load your podcasts';
+    }
   }
 
-  List<Podcast> _getMockFeaturedPodcasts() {
-    const String sampleAudioUrl =
-        'asset:///assets/sample-type-rap-beat-lucky-night-193659.mp3';
-
-    return [
-      Podcast(
-        id: '5',
-        title: 'The AI Revolution Podcast',
-        channelName: 'Tech Talks Daily',
-        description:
-            'Exploring the future of artificial intelligence and its impact on humanity. Subscribe for weekly episodes.',
-        imageUrl: 'https://via.placeholder.com/300?text=AI+Revolution',
-        audioUrl: sampleAudioUrl,
-        duration: 3600,
-        listenerCount: 1200000,
-        publishedDate: DateTime.now(),
-        rating: 4.9,
-      ),
-    ];
+  /// Create a new podcast
+  Future<String?> createPodcast({
+    required String title,
+    required String description,
+    required String audioUrl,
+    String? imageUrl,
+    bool isPublic = true,
+  }) async {
+    try {
+      final podcastId = await _apiService.createPodcast(
+        title: title,
+        description: description,
+        audioUrl: audioUrl,
+        imageUrl: imageUrl,
+        isPublic: isPublic,
+      );
+      if (podcastId != null) {
+        await fetchUserPodcasts(); // Refresh the list
+      }
+      return podcastId;
+    } catch (e) {
+      developer.log('Error creating podcast: $e');
+      _audioError = 'Failed to create podcast';
+      rethrow;
+    }
   }
 
-  List<PodcastChannel> _getMockTopChannels() {
-    return [
-      PodcastChannel(
-        id: 'ch1',
-        name: 'Tech Talks',
-        description: 'Technology and innovation discussions',
-        iconUrl: 'https://via.placeholder.com/80?text=TT',
-        episodeCount: 124,
-        category: 'Technology',
-      ),
-      PodcastChannel(
-        id: 'ch2',
-        name: 'Mind Matters',
-        description: 'Mental health and wellness topics',
-        iconUrl: 'https://via.placeholder.com/80?text=MM',
-        episodeCount: 89,
-        category: 'Wellness',
-      ),
-      PodcastChannel(
-        id: 'ch3',
-        name: 'Founders',
-        description: 'Startup and entrepreneurship stories',
-        iconUrl: 'https://via.placeholder.com/80?text=FD',
-        episodeCount: 156,
-        category: 'Business',
-      ),
-      PodcastChannel(
-        id: 'ch4',
-        name: 'Web3 Daily',
-        description: 'Blockchain and crypto news',
-        iconUrl: 'https://via.placeholder.com/80?text=W3',
-        episodeCount: 203,
-        category: 'Technology',
-      ),
-    ];
+  /// Update a podcast
+  Future<bool> updatePodcast({
+    required String podcastId,
+    String? title,
+    String? description,
+    String? imageUrl,
+    bool? isPublic,
+  }) async {
+    try {
+      final updated = await _apiService.updatePodcast(
+        podcastId: podcastId,
+        title: title,
+        description: description,
+        imageUrl: imageUrl,
+        isPublic: isPublic,
+      );
+      if (updated != null) {
+        await fetchUserPodcasts(); // Refresh the list
+        return true;
+      }
+      return false;
+    } catch (e) {
+      developer.log('Error updating podcast: $e');
+      _audioError = 'Failed to update podcast';
+      rethrow;
+    }
   }
 
-  List<Podcast> _getMockUserPodcasts() {
-    const String sampleAudioUrl =
-        'asset:///assets/sample-type-rap-beat-lucky-night-193659.mp3';
-    return [
-      Podcast(
-        id: 'user1',
-        title: 'My Tech Insights',
-        channelName: 'My Channel',
-        description:
-            'Weekly episodes about technology trends, coding tips, and digital innovation.',
-        imageUrl: 'https://via.placeholder.com/150?text=Tech+Insights',
-        audioUrl: sampleAudioUrl,
-        duration: 2345, // 39:05
-        listenerCount: 12500,
-        publishedDate: DateTime.now().subtract(const Duration(days: 5)),
-        rating: 4.7,
-      ),
-      Podcast(
-        id: 'user2',
-        title: 'Learning Daily',
-        channelName: 'My Channel',
-        description:
-            'Short daily episodes focused on personal growth and professional development.',
-        imageUrl: 'https://via.placeholder.com/150?text=Learning',
-        audioUrl: sampleAudioUrl,
-        duration: 1560, // 26:00
-        listenerCount: 8300,
-        publishedDate: DateTime.now().subtract(const Duration(days: 3)),
-        rating: 4.5,
-      ),
-      Podcast(
-        id: 'user3',
-        title: 'Creative Stories',
-        channelName: 'My Channel',
-        description:
-            'Original fiction and storytelling from a creative perspective.',
-        imageUrl: 'https://via.placeholder.com/150?text=Stories',
-        audioUrl: sampleAudioUrl,
-        duration: 3020, // 50:20
-        listenerCount: 15600,
-        publishedDate: DateTime.now().subtract(const Duration(days: 7)),
-        rating: 4.8,
-      ),
-    ];
+  /// Delete a podcast
+  Future<bool> deletePodcast(String podcastId) async {
+    try {
+      final success = await _apiService.deletePodcast(podcastId);
+      if (success) {
+        await fetchUserPodcasts(); // Refresh the list
+      }
+      return success;
+    } catch (e) {
+      developer.log('Error deleting podcast: $e');
+      _audioError = 'Failed to delete podcast';
+      rethrow;
+    }
+  }
+
+  /// Add to play history
+  Future<bool> addToPlayHistory(Podcast podcast) async {
+    try {
+      return await _apiService.addToPlayHistory(
+        podcastId: podcast.id,
+        title: podcast.title,
+        creatorName: podcast.channelName,
+        imageUrl: podcast.imageUrl,
+        position: _currentPosition.toInt(),
+        duration: _totalDuration.toInt(),
+      );
+    } catch (e) {
+      developer.log('Error adding to play history: $e');
+      return false;
+    }
   }
 
   @override

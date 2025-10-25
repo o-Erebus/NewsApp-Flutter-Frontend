@@ -16,7 +16,6 @@ import 'package:provider/provider.dart';
 import '../../Providers/news_provider.dart';
 import '../../Models/news_article.dart';
 import '../_common_widgets/title_widget.dart';
-import '../_common_widgets/heading_widget.dart';
 import '../_common_widgets/greeting_logic.dart';
 import '../_common_widgets/error_indicator_widget.dart';
 import '../_common_widgets/no_articles_indicator_widget.dart';
@@ -94,14 +93,111 @@ class _HomePageState extends State<HomePage> {
             // START: Put your Carousel Widget here (remains the same or similar)
             const CarouselWidget(), // Keep this simple or manage its state separately
             // END: Put your Carousel Widget here
-            // Show heading skeleton when loading, otherwise show the actual heading
+            // Show heading skeleton when loading, otherwise show the actual heading and mood button
             _isLoading
                 ? const MinDisplayTimeWrapper(
                     child: HeadingSkeletonWidget(),
                     minDisplayTime: Duration(milliseconds: 2500),
                   )
-                : const HeadingWidget(
-                    title: "Top Headlines",
+                : SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 12.0,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Top Headlines',
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Tooltip(
+                            message: newsProvider.isMoodBoosterActivated
+                                ? 'Mood Booster: Active'
+                                : 'Mood Booster: Inactive',
+                            child: GestureDetector(
+                              onTap: () {
+                                newsProvider.toggleMoodBooster();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      newsProvider.isMoodBoosterActivated
+                                          ? 'Mood Booster Activated! 🌟'
+                                          : 'Mood Booster Deactivated',
+                                    ),
+                                    duration: const Duration(milliseconds: 800),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: newsProvider.isMoodBoosterActivated
+                                      ? theme.colorScheme.primary.withAlpha(200)
+                                      : theme
+                                            .colorScheme
+                                            .surfaceContainerHighest,
+                                ),
+                                child: Semantics(
+                                  label: newsProvider.isMoodBoosterActivated
+                                      ? 'Mood Booster Active'
+                                      : 'Mood Booster Inactive',
+                                  button: true,
+                                  child: newsProvider.isMoodBoosterActivated
+                                      ? Text(
+                                          '😁', // Beaming Face with Smiling Eyes
+                                          style: TextStyle(
+                                            fontSize: 22,
+                                            color: theme.colorScheme.onPrimary,
+                                          ),
+                                        )
+                                      : ColorFiltered(
+                                          colorFilter:
+                                              const ColorFilter.matrix(<double>[
+                                                0.2126,
+                                                0.7152,
+                                                0.0722,
+                                                0,
+                                                0,
+                                                0.2126,
+                                                0.7152,
+                                                0.0722,
+                                                0,
+                                                0,
+                                                0.2126,
+                                                0.7152,
+                                                0.0722,
+                                                0,
+                                                0,
+                                                0,
+                                                0,
+                                                0,
+                                                1,
+                                                0,
+                                              ]),
+                                          child: Text(
+                                            '😁',
+                                            style: TextStyle(
+                                              fontSize: 22,
+                                              color: theme
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ), // Keep this simple
             // Show category pills skeleton when loading, otherwise show the actual category pills
             _isLoading

@@ -52,6 +52,11 @@ class FloatingNavbar extends StatelessWidget {
         selectedIndex: navProvider.selectedIndex,
         tabs: tabs,
         onTabChange: (index) {
+          // Unfocus any focused input before changing tabs so that the
+          // Podcast search field (or any other input) doesn't keep the
+          // keyboard open or regain focus unexpectedly.
+          FocusScope.of(context).unfocus();
+
           if (index == 3 && !authProvider.isAuthenticated) {
             final prevIndex = navProvider.selectedIndex;
             _showAuthModalSheet(context, navProvider, authProvider, prevIndex);
@@ -69,8 +74,10 @@ class FloatingNavbar extends StatelessWidget {
     AuthProvider authProvider,
     int previousIndex,
   ) {
+    // Ensure nothing is focused when showing the auth modal as well.
+    FocusScope.of(context).unfocus();
+
     showModalBottomSheet(
-      
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(

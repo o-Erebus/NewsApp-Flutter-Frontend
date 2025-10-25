@@ -9,6 +9,7 @@ class Podcast {
   final int listenerCount;
   final DateTime publishedDate;
   final double rating; // 0-5
+  final bool isPublic; // New field for public/private status
 
   Podcast({
     required this.id,
@@ -21,25 +22,62 @@ class Podcast {
     required this.listenerCount,
     required this.publishedDate,
     required this.rating,
+    this.isPublic = true,
   });
 
   // Factory constructor for creating a Podcast from JSON (API response)
   factory Podcast.fromJson(Map<String, dynamic> json) {
+    // Robust parsing for duration that may arrive as:
+    // - int under keys: 'duration', 'total_duration'
+    // - camelCase 'totalDuration'
+    // - string numbers ("18")
+    dynamic rawDuration =
+        json['duration'] ?? json['total_duration'] ?? json['totalDuration'];
+    int parsedDuration = 0;
+    if (rawDuration != null) {
+      if (rawDuration is int) {
+        parsedDuration = rawDuration;
+      } else if (rawDuration is double) {
+        parsedDuration = rawDuration.toInt();
+      } else if (rawDuration is String) {
+        parsedDuration =
+            int.tryParse(rawDuration) ??
+            (double.tryParse(rawDuration)?.toInt() ?? 0);
+      }
+    }
+
     return Podcast(
-      id: json['id'] as String,
-      title: json['title'] as String,
+      // Handle both 'id' and '_id' from API
+      id: (json['id'] ?? json['_id'] ?? json['podcast_id'] ?? '') as String,
+      title: json['title'] as String? ?? '',
+      // Handle snake_case from new API: creator_name
       channelName:
-          json['channelName'] as String? ?? json['channel_name'] as String,
-      description: json['description'] as String,
-      imageUrl: json['imageUrl'] as String? ?? json['image_url'] as String,
-      audioUrl: json['audioUrl'] as String? ?? json['audio_url'] as String,
-      duration: json['duration'] as int,
+          (json['channelName'] ??
+                  json['channel_name'] ??
+                  json['creator_name'] ??
+                  'Unknown')
+              as String,
+      description: json['description'] as String? ?? '',
+      // Handle snake_case from new API: image_url
+      imageUrl: (json['imageUrl'] ?? json['image_url'] ?? '') as String,
+      // Handle snake_case from new API: audio_url
+      audioUrl: (json['audioUrl'] ?? json['audio_url'] ?? '') as String,
+      // Use parsed duration (from backend if provided) or 0
+      duration: parsedDuration,
+      // Handle listener_count from API, default to 0 if not present
       listenerCount:
-          json['listenerCount'] as int? ?? json['listener_count'] as int,
+          (json['listenerCount'] ?? json['listener_count'] ?? 0) as int,
+      // Handle both publishedDate and created_time from new API
       publishedDate: json['publishedDate'] is String
           ? DateTime.parse(json['publishedDate'] as String)
-          : DateTime.parse(json['published_date'] as String),
-      rating: (json['rating'] as num).toDouble(),
+          : json['created_time'] is String
+          ? DateTime.parse(json['created_time'] as String)
+          : DateTime.now(),
+      // Default rating to 0 if not provided
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
+      // Handle is_public field from API
+      isPublic:
+          (json['is_public'] as bool?) ?? (json['isPublic'] as bool?) ?? true,
     );
   }
 
@@ -56,6 +94,7 @@ class Podcast {
       'listenerCount': listenerCount,
       'publishedDate': publishedDate.toIso8601String(),
       'rating': rating,
+      'isPublic': isPublic,
     };
   }
 
@@ -71,6 +110,7 @@ class Podcast {
     int? listenerCount,
     DateTime? publishedDate,
     double? rating,
+    bool? isPublic,
   }) {
     return Podcast(
       id: id ?? this.id,
@@ -83,6 +123,7 @@ class Podcast {
       listenerCount: listenerCount ?? this.listenerCount,
       publishedDate: publishedDate ?? this.publishedDate,
       rating: rating ?? this.rating,
+      isPublic: isPublic ?? this.isPublic,
     );
   }
 

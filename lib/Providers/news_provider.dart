@@ -12,9 +12,16 @@ import 'package:finalyear/utils/cache_handler.dart';
 import 'package:finalyear/Models/news_cache_models.dart';
 
 class NewsProvider with ChangeNotifier {
-  static final _pageSize = int.parse(Constants.pageSize); // Number of articles per page
-  static final _featuredArticlesSize = int.parse(Constants.featuredArticlesSize); // Number of featured articles
-  
+  static final _pageSize = int.parse(
+    Constants.pageSize,
+  ); // Number of articles per page
+  static final _featuredArticlesSize = int.parse(
+    Constants.featuredArticlesSize,
+  ); // Number of featured articles
+
+  // Mood booster state for home screen
+  bool _isMoodBoosterActivated = false;
+
   /// This example uses a [PagingController] to manage the paging state.
   ///
   /// This is a robust inbuilt way to store your pagination state.
@@ -51,8 +58,10 @@ class NewsProvider with ChangeNotifier {
 
   // Cache handlers for different purposes
   final Map<String, CacheHandler<NewsArticle>> _categoryCacheHandlers = {};
-  final CacheHandler<NewsArticle> _globalCacheHandler = CacheHandler<NewsArticle>();
-  final CacheHandler<NewsArticle> _allCacheHandler = CacheHandler<NewsArticle>();
+  final CacheHandler<NewsArticle> _globalCacheHandler =
+      CacheHandler<NewsArticle>();
+  final CacheHandler<NewsArticle> _allCacheHandler =
+      CacheHandler<NewsArticle>();
 
   // Current selected category
   String _currentCategory = 'all';
@@ -66,9 +75,10 @@ class NewsProvider with ChangeNotifier {
   List<NewsArticle> get featuredArticles => [..._featuredArticles];
   String get currentCategory => _currentCategory;
   bool get isFetchingFeaturedArticles => _isFetchingFeaturedArticles;
+  bool get isMoodBoosterActivated => _isMoodBoosterActivated;
 
   // Helper method to get featured article IDs
- Set<String> _getFeaturedArticleIds() {
+  Set<String> _getFeaturedArticleIds() {
     return _featuredArticles.map((article) => article.id).toSet();
   }
 
@@ -101,6 +111,14 @@ class NewsProvider with ChangeNotifier {
         _prefetchCategoryArticles();
       }
     });
+  }
+
+  /// Toggle mood booster and refresh articles
+  void toggleMoodBooster() {
+    _isMoodBoosterActivated = !_isMoodBoosterActivated;
+    clearAllCaches();
+    _pagingController.refresh();
+    notifyListeners();
   }
 
   /// Prefetch articles for all categories to improve UX
@@ -164,11 +182,16 @@ class NewsProvider with ChangeNotifier {
     int pageKey,
   ) async {
     // Determine which cache handler to use
-    final cacheHandler = category == 'all' ? _allCacheHandler : _getCategoryCacheHandler(category);
+    final cacheHandler = category == 'all'
+        ? _allCacheHandler
+        : _getCategoryCacheHandler(category);
     final cacheKey = category == 'all' ? 'all' : category;
 
     // Try to get from cache first
-    final cachedPage = cacheHandler.getCachedPage(key: cacheKey, pageKey: pageKey);
+    final cachedPage = cacheHandler.getCachedPage(
+      key: cacheKey,
+      pageKey: pageKey,
+    );
     if (cachedPage != null) {
       return cachedPage.items;
     }
@@ -176,13 +199,14 @@ class NewsProvider with ChangeNotifier {
     try {
       // Construct endpoint based on category
       String endpoint = Constants.articlesEndpoint;
-      
+
       // Create query parameters
       final queryParams = {
         'page': pageKey.toString(),
         'limit': (_pageSize + _featuredArticles.length).toString(),
+        'isMoodBoosterActivated': _isMoodBoosterActivated.toString(),
       };
-      
+
       // Add tags filter if category is not 'all'
       if (category != 'all') {
         queryParams['tags'] = category;
@@ -255,21 +279,21 @@ class NewsProvider with ChangeNotifier {
   /// Fetch global articles with caching
   Future<List<NewsArticle>> _fetchGlobalPage(int pageKey) async {
     // Try to get from cache first
-    final cachedPage = _globalCacheHandler.getCachedPage(key: 'global', pageKey: pageKey);
+    final cachedPage = _globalCacheHandler.getCachedPage(
+      key: 'global',
+      pageKey: pageKey,
+    );
     if (cachedPage != null) {
       return cachedPage.items;
     }
 
     try {
       // Construct endpoint for global articles
-      final uri = UriUtils.buildUri(
-        Constants.globalArticlesEndpoint,
-        {
-          'page': pageKey.toString(),
-          'limit': (_pageSize + _featuredArticles.length).toString(),
-          'tags' : 'world'
-        },
-      );
+      final uri = UriUtils.buildUri(Constants.globalArticlesEndpoint, {
+        'page': pageKey.toString(),
+        'limit': (_pageSize + _featuredArticles.length).toString(),
+        'tags': 'world',
+      });
 
       final response = await _requestHandler.get(uri.toString());
 
@@ -352,10 +376,10 @@ class NewsProvider with ChangeNotifier {
   Future<void> fetchFeaturedArticles() async {
     // Create a separate loading state for featured articles to avoid conflicts
     // Note: We don't need to notifyListeners here as the PagingController handles that
-    
+
     _isFetchingFeaturedArticles = true;
     notifyListeners();
-    
+
     final uri = UriUtils.buildUri(Constants.featuredArticlesEndpoint);
 
     try {
@@ -405,13 +429,13 @@ class NewsProvider with ChangeNotifier {
     _categoryCacheHandlers.values.forEach((cacheHandler) {
       cacheHandler.clearAllCache();
     });
-    
+
     // Clear global cache
     _globalCacheHandler.clearAllCache();
-    
+
     // Clear 'all' cache
     _allCacheHandler.clearAllCache();
-    
+
     developer.log('All caches cleared');
   }
 

@@ -12,10 +12,15 @@ class FeaturedPodcastSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Consumer<PodcastProvider>(
       builder: (context, podcastProvider, _) {
+        // Show create podcast CTA instead
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: GestureDetector(
             onTap: () {
+              // Ensure any focused input (like the search field) is unfocused
+              // before navigating so the keyboard doesn't remain or pop.
+              FocusScope.of(context).unfocus();
+
               Navigator.push(
                 context,
                 PageTransition(
@@ -24,14 +29,20 @@ class FeaturedPodcastSection extends StatelessWidget {
                   reverseDuration: const Duration(milliseconds: 200),
                   child: const CreatePodcastPage(),
                 ),
-              );
+              ).then((_) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  FocusScope.of(context).unfocus();
+                });
+              });
             },
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [colorScheme.primary, colorScheme.primaryContainer],
+                  colors: [colorScheme.primary, colorScheme.brightness == Brightness.dark
+                      ? colorScheme.primaryContainer
+                      : colorScheme.secondary],
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),

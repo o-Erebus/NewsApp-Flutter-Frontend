@@ -56,6 +56,9 @@ class _MiniPlayerState extends State<MiniPlayer> {
           right: 12 - _offsetX,
           child: GestureDetector(
             onTap: () {
+              // Unfocus any input (search) before navigating to full player
+              FocusScope.of(context).unfocus();
+
               Navigator.push(
                 context,
                 PageTransition(
@@ -64,7 +67,11 @@ class _MiniPlayerState extends State<MiniPlayer> {
                   reverseDuration: const Duration(milliseconds: 200),
                   child: FullPlayerPage(podcast: podcast),
                 ),
-              );
+              ).then((_) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  FocusScope.of(context).unfocus();
+                });
+              });
             },
             onPanStart: (details) {
               _startDragPosition = details.globalPosition;
@@ -112,6 +119,7 @@ class _MiniPlayerState extends State<MiniPlayer> {
 
               // Swipe up: Open full player
               if (dy < -50 && distance > 2500) {
+                FocusScope.of(context).unfocus();
                 Navigator.push(
                   context,
                   PageTransition(
@@ -120,7 +128,11 @@ class _MiniPlayerState extends State<MiniPlayer> {
                     reverseDuration: const Duration(milliseconds: 200),
                     child: FullPlayerPage(podcast: podcast),
                   ),
-                );
+                ).then((_) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    FocusScope.of(context).unfocus();
+                  });
+                });
               }
               // Swipe left, right, or down: Stop and close mini player
               else if ((dx.abs() > 50 && distance > 2500) ||
