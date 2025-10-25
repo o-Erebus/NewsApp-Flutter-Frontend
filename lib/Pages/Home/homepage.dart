@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'dart:async'; // For unawaited
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:provider/provider.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 
 import '../../Providers/news_provider.dart';
 import '../../Models/news_article.dart';
@@ -122,17 +124,24 @@ class _HomePageState extends State<HomePage> {
                             child: GestureDetector(
                               onTap: () {
                                 newsProvider.toggleMoodBooster();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      newsProvider.isMoodBoosterActivated
-                                          ? 'Mood Booster Activated! 🌟'
-                                          : 'Mood Booster Deactivated',
+                                // Use top_snackbar_flutter for a consistent top snackbar UI
+                                if (newsProvider.isMoodBoosterActivated) {
+                                  showTopSnackBar(
+                                    Overlay.of(context),
+                                    displayDuration: Duration(seconds: 1),
+                                    CustomSnackBar.success(
+                                      message: 'Mood Booster Activated! 😁',
                                     ),
-                                    duration: const Duration(milliseconds: 800),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
+                                  );
+                                } else {
+                                  showTopSnackBar(
+                                    Overlay.of(context),
+                                    displayDuration: Duration(seconds: 1),
+                                    CustomSnackBar.info(
+                                      message: 'Mood Booster Deactivated',
+                                    ),
+                                  );
+                                }
                               },
                               child: Container(
                                 padding: const EdgeInsets.all(8),
