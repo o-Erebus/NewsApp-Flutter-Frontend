@@ -23,22 +23,22 @@ class ErrorIndicatorWidget extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            error?.toString() ?? 'Unknown error',
+            "Try again later.",
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.grey),
           ),
           const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed:
-                onRetry ??
-                () {
-                  // Default retry action if not provided
-                  final newsProvider = context.read<NewsProvider>();
-                  // Refresh the global paging controller
-                  newsProvider.globalPagingController.refresh();
-                },
-            child: const Text('Retry'),
-          ),
+          // ElevatedButton(
+          //   onPressed:
+          //       onRetry ??
+          //       () {
+          //         // Default retry action if not provided
+          //         final newsProvider = context.read<NewsProvider>();
+          //         // Refresh the global paging controller
+          //         newsProvider.globalPagingController.refresh();
+          //       },
+          //   child: const Text('Retry'),
+          // ),
         ],
       ),
     );

@@ -70,7 +70,10 @@ class TrendingPodcastsSection extends StatelessWidget {
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: podcastProvider.trendingPodcasts.length,
+                // Show only up to the first 4 trending podcasts
+                itemCount: podcastProvider.trendingPodcasts.length > 4
+                    ? 4
+                    : podcastProvider.trendingPodcasts.length,
                 itemBuilder: (context, index) {
                   final podcast = podcastProvider.trendingPodcasts[index];
                   return TrendingPodcastCard(
