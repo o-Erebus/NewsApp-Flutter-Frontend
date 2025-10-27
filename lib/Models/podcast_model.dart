@@ -10,6 +10,7 @@ class Podcast {
   final DateTime publishedDate;
   final double rating; // 0-5
   final bool isPublic; // New field for public/private status
+  final String status; // "completed", "generating", "failed"
 
   Podcast({
     required this.id,
@@ -23,6 +24,7 @@ class Podcast {
     required this.publishedDate,
     required this.rating,
     this.isPublic = true,
+    this.status = 'completed',
   });
 
   // Factory constructor for creating a Podcast from JSON (API response)
@@ -78,6 +80,8 @@ class Podcast {
       // Handle is_public field from API
       isPublic:
           (json['is_public'] as bool?) ?? (json['isPublic'] as bool?) ?? true,
+      // Handle status field from API - can be "completed", "generating", "failed"
+      status: (json['status'] as String?)?.toLowerCase() ?? 'completed',
     );
   }
 
@@ -95,6 +99,7 @@ class Podcast {
       'publishedDate': publishedDate.toIso8601String(),
       'rating': rating,
       'isPublic': isPublic,
+      'status': status,
     };
   }
 
@@ -111,6 +116,7 @@ class Podcast {
     DateTime? publishedDate,
     double? rating,
     bool? isPublic,
+    String? status,
   }) {
     return Podcast(
       id: id ?? this.id,
@@ -124,6 +130,7 @@ class Podcast {
       publishedDate: publishedDate ?? this.publishedDate,
       rating: rating ?? this.rating,
       isPublic: isPublic ?? this.isPublic,
+      status: status ?? this.status,
     );
   }
 

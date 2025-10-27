@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:finalyear/Providers/navigation_provider.dart';
 
 import 'package:finalyear/Providers/podcast_provider.dart';
-import 'package:finalyear/Providers/auth_provider.dart';
 import 'widgets/mini_player.dart';
 import 'widgets/featured_podcast_section.dart';
 import 'widgets/trending_podcasts_section.dart';
@@ -72,7 +71,14 @@ class _PodcastPageState extends State<PodcastPage> {
             children: [
               // Main content
               RefreshIndicator(
-                onRefresh: podcastProvider.refreshAll,
+                onRefresh: () async {
+                  // Only refresh the currently visible section
+                  if (_showTrending) {
+                    await podcastProvider.refreshTrendingPodcasts();
+                  } else {
+                    await podcastProvider.fetchUserPodcasts();
+                  }
+                },
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Column(
@@ -82,12 +88,12 @@ class _PodcastPageState extends State<PodcastPage> {
                       _buildHeader(context),
                       const SizedBox(height: 20),
 
-                      // Search Bar
-                      _buildSearchBar(context),
-                      const SizedBox(height: 20),
+                      // // Search Bar
+                      // _buildSearchBar(context),
+                      // const SizedBox(height: 20),
 
                       // Toggle Pills (Trending / My Podcasts)
-                      
+
                       // Featured Podcast Section
                       const FeaturedPodcastSection(),
                       const SizedBox(height: 30),
@@ -121,7 +127,6 @@ class _PodcastPageState extends State<PodcastPage> {
 
   Widget _buildHeader(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final authProvider = context.watch<AuthProvider>();
 
     return Padding(
       padding: const EdgeInsets.all(20.0),

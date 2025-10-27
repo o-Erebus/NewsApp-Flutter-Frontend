@@ -134,10 +134,7 @@ class PodcastApiService {
 
   // ==================== CREATE PODCAST ====================
   Future<String?> createPodcast({
-    required String title,
-    required String description,
-    required String audioUrl,
-    String? imageUrl,
+    required String topic,
     bool isPublic = true,
   }) async {
     try {
@@ -147,13 +144,7 @@ class PodcastApiService {
       }
 
       final url = '${Constants.baseUrl}$_baseEndpoint';
-      final body = {
-        'title': title,
-        'description': description,
-        'audio_url': audioUrl,
-        'image_url': imageUrl,
-        'is_public': isPublic,
-      };
+      final body = {'topic': topic, 'is_public': isPublic};
 
       developer.log('Creating podcast at: $url with body: $body');
       final response = await _requestHandler.post(url, body: body);

@@ -127,8 +127,34 @@ class PodcastCard extends StatelessWidget {
               ),
             ),
 
-            // trailing widget (play/edit) if provided
-            if (trailing != null) trailing!,
+            // Show status icons OR trailing widget
+            // If status is generating/failed, show appropriate icon instead of trailing button
+            if (podcast.status == 'generating')
+              Container(
+                padding: const EdgeInsets.all(8),
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      colorScheme.primary,
+                    ),
+                  ),
+                ),
+              )
+            else if (podcast.status == 'failed')
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Icon(
+                  Icons.error_outline,
+                  color: colorScheme.error,
+                  size: 24,
+                ),
+              )
+            else if (trailing != null)
+              // Show play/edit button only when status is "completed"
+              trailing!,
           ],
         ),
       ),

@@ -10,26 +10,34 @@ class NoArticlesIndicatorWidget extends StatelessWidget {
     // Check if we should use SliverFillRemaining (for homepage) or regular Center (for globalpage)
     final bool useSliver = ModalRoute.of(context)?.settings.name != '/global';
 
-    final content = Padding(
-      padding: const EdgeInsets.only(bottom: 80.0),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.article_outlined, size: 48, color: Colors.grey),
-            const SizedBox(height: 16),
-            Text(
-              "No articles found.",
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
+    final content = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(Icons.article_outlined, size: 48, color: Colors.grey),
+        const SizedBox(height: 16),
+        Text(
+          "No articles found.",
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
-      ),
+      ],
     );
 
     // Return appropriate widget based on context
-    return useSliver ? SliverFillRemaining(child: content) : content;
+    if (useSliver) {
+      return SliverFillRemaining(
+        hasScrollBody: false,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 80.0),
+          child: Center(child: content),
+        ),
+      );
+    } else {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 80.0),
+        child: Center(child: content),
+      );
+    }
   }
 }

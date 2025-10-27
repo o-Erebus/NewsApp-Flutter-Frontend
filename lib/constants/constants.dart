@@ -1,7 +1,7 @@
 class Constants {
-  static const String baseUrlTest = "http://10.0.0.4:8000";
+  static const String baseUrlTest = "http://10.0.0.4:10000";
   static const String baseUrlProd =
-      "https://nexora-newsapp-backend.onrender.com";
+      "https://fastapi-production-a7bf.up.railway.app";
   static const bool isProd = false;
   static final String baseUrl = isProd ? baseUrlProd : baseUrlTest;
   static const String articlesEndpoint = "/articles/";

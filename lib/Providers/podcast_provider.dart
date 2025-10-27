@@ -275,18 +275,12 @@ class PodcastProvider with ChangeNotifier {
 
   /// Create a new podcast
   Future<String?> createPodcast({
-    required String title,
-    required String description,
-    required String audioUrl,
-    String? imageUrl,
+    required String topic,
     bool isPublic = true,
   }) async {
     try {
       final podcastId = await _apiService.createPodcast(
-        title: title,
-        description: description,
-        audioUrl: audioUrl,
-        imageUrl: imageUrl,
+        topic: topic,
         isPublic: isPublic,
       );
       if (podcastId != null) {

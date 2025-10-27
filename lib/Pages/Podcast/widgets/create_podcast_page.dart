@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:finalyear/Providers/podcast_provider.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 
 import '../../../Models/podcast_model.dart' as pm;
 
@@ -14,9 +16,9 @@ class CreatePodcastPage extends StatefulWidget {
 
 class _CreatePodcastPageState extends State<CreatePodcastPage> {
   final _formKey = GlobalKey<FormState>();
+  late TextEditingController _topicController;
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
-  late TextEditingController _audioUrlController;
   late TextEditingController _imageUrlController;
   bool _isPublic = true;
   bool _isLoading = false;
@@ -25,9 +27,9 @@ class _CreatePodcastPageState extends State<CreatePodcastPage> {
   @override
   void initState() {
     super.initState();
+    _topicController = TextEditingController();
     _titleController = TextEditingController();
     _descriptionController = TextEditingController();
-    _audioUrlController = TextEditingController();
     _imageUrlController = TextEditingController();
     _isEdit = widget.existingPodcast != null;
 
@@ -35,7 +37,6 @@ class _CreatePodcastPageState extends State<CreatePodcastPage> {
       final p = widget.existingPodcast!;
       _titleController.text = p.title;
       _descriptionController.text = p.description;
-      _audioUrlController.text = p.audioUrl;
       _imageUrlController.text = p.imageUrl;
       _isPublic = p.isPublic;
     }
@@ -43,9 +44,9 @@ class _CreatePodcastPageState extends State<CreatePodcastPage> {
 
   @override
   void dispose() {
+    _topicController.dispose();
     _titleController.dispose();
     _descriptionController.dispose();
-    _audioUrlController.dispose();
     _imageUrlController.dispose();
     super.dispose();
   }
@@ -105,164 +106,168 @@ class _CreatePodcastPageState extends State<CreatePodcastPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Title Field
-                        Text(
-                          'Podcast Title',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                color: colorScheme.onSurface,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _titleController,
-                          style: TextStyle(color: colorScheme.onSurface),
-                          decoration: InputDecoration(
-                            hintText: 'Enter podcast title',
-                            hintStyle: TextStyle(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            filled: true,
-                            fillColor: colorScheme.surfaceContainer,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
+                        // Conditionally show Topic or Title based on mode
+                        if (!_isEdit) ...[
+                          // Topic Field (for creation only)
+                          Text(
+                            'Topic',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  color: colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
-                          validator: (value) {
-                            if (value?.isEmpty ?? true) {
-                              return 'Please enter a podcast title';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _topicController,
+                            style: TextStyle(color: colorScheme.onSurface),
+                            decoration: InputDecoration(
+                              hintText: 'Enter podcast topic or description',
+                              hintStyle: TextStyle(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              filled: true,
+                              fillColor: colorScheme.surfaceContainer,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value?.isEmpty ?? true) {
+                                return 'Please enter a podcast topic';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                        ] else ...[
+                          // Title Field (for editing only)
+                          Text(
+                            'Podcast Title',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  color: colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _titleController,
+                            style: TextStyle(color: colorScheme.onSurface),
+                            decoration: InputDecoration(
+                              hintText: 'Enter podcast title',
+                              hintStyle: TextStyle(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              filled: true,
+                              fillColor: colorScheme.surfaceContainer,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value?.isEmpty ?? true) {
+                                return 'Please enter a podcast title';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                        ],
 
-                        // Description Field
-                        Text(
-                          'Description',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                color: colorScheme.onSurface,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _descriptionController,
-                          style: TextStyle(color: colorScheme.onSurface),
-                          maxLines: 4,
-                          decoration: InputDecoration(
-                            hintText: 'Describe your podcast',
-                            hintStyle: TextStyle(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            filled: true,
-                            fillColor: colorScheme.surfaceContainer,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
+                        // Description Field (only in edit mode)
+                        if (_isEdit) ...[
+                          Text(
+                            'Description',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  color: colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
-                          validator: (value) {
-                            if (value?.isEmpty ?? true) {
-                              return 'Please enter a description';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _descriptionController,
+                            style: TextStyle(color: colorScheme.onSurface),
+                            maxLines: 4,
+                            decoration: InputDecoration(
+                              hintText: 'Describe your podcast',
+                              hintStyle: TextStyle(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              filled: true,
+                              fillColor: colorScheme.surfaceContainer,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value?.isEmpty ?? true) {
+                                return 'Please enter a description';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                        ],
 
-                        // Audio URL Field
-                        Text(
-                          'Audio URL',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                color: colorScheme.onSurface,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _audioUrlController,
-                          style: TextStyle(color: colorScheme.onSurface),
-                          decoration: InputDecoration(
-                            hintText: 'https://example.com/audio.mp3',
-                            hintStyle: TextStyle(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            filled: true,
-                            fillColor: colorScheme.surfaceContainer,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value?.isEmpty ?? true) {
-                              return 'Please enter audio URL';
-                            }
-                            if (!value!.startsWith('http')) {
-                              return 'Please enter a valid URL';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Image URL Field
-                        Text(
-                          'Podcast Image URL',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                color: colorScheme.onSurface,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _imageUrlController,
-                          style: TextStyle(color: colorScheme.onSurface),
-                          decoration: InputDecoration(
-                            hintText: 'https://example.com/image.png',
-                            hintStyle: TextStyle(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            filled: true,
-                            fillColor: colorScheme.surfaceContainer,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value?.isEmpty ?? true) {
-                              return 'Please enter image URL';
-                            }
-                            if (!value!.startsWith('http')) {
-                              return 'Please enter a valid URL';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24),
+                        // // Image URL Field (only in edit mode)
+                        // if (_isEdit) ...[
+                        //   Text(
+                        //     'Podcast Image URL',
+                        //     style: Theme.of(context).textTheme.titleSmall
+                        //         ?.copyWith(
+                        //           color: colorScheme.onSurface,
+                        //           fontWeight: FontWeight.bold,
+                        //         ),
+                        //   ),
+                        //   const SizedBox(height: 12),
+                        //   TextFormField(
+                        //     controller: _imageUrlController,
+                        //     style: TextStyle(color: colorScheme.onSurface),
+                        //     decoration: InputDecoration(
+                        //       hintText: 'https://example.com/image.png',
+                        //       hintStyle: TextStyle(
+                        //         color: colorScheme.onSurfaceVariant,
+                        //       ),
+                        //       filled: true,
+                        //       fillColor: colorScheme.surfaceContainer,
+                        //       border: OutlineInputBorder(
+                        //         borderRadius: BorderRadius.circular(12),
+                        //         borderSide: BorderSide.none,
+                        //       ),
+                        //       contentPadding: const EdgeInsets.symmetric(
+                        //         horizontal: 16,
+                        //         vertical: 14,
+                        //       ),
+                        //     ),
+                        //     validator: (value) {
+                        //       if (value?.isEmpty ?? true) {
+                        //         return 'Please enter image URL';
+                        //       }
+                        //       if (!value!.startsWith('http')) {
+                        //         return 'Please enter a valid URL';
+                        //       }
+                        //       return null;
+                        //     },
+                        //   ),
+                        //   const SizedBox(height: 24),
+                        // ],
 
                         // Public/Private Toggle
                         Row(
@@ -325,30 +330,25 @@ class _CreatePodcastPageState extends State<CreatePodcastPage> {
                                             });
 
                                             if (success) {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    'Podcast updated',
-                                                  ),
-                                                  duration: Duration(
-                                                    seconds: 2,
-                                                  ),
+                                              showTopSnackBar(
+                                                Overlay.of(context),
+                                                const CustomSnackBar.success(
+                                                  message: 'Podcast updated',
+                                                ),
+                                                displayDuration: const Duration(
+                                                  seconds: 2,
                                                 ),
                                               );
                                               Navigator.of(context).pop();
                                             } else {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    'Failed to update podcast',
-                                                  ),
-                                                  duration: Duration(
-                                                    seconds: 2,
-                                                  ),
+                                              showTopSnackBar(
+                                                Overlay.of(context),
+                                                const CustomSnackBar.error(
+                                                  message:
+                                                      'Failed to update podcast',
+                                                ),
+                                                displayDuration: const Duration(
+                                                  seconds: 2,
                                                 ),
                                               );
                                             }
@@ -358,13 +358,7 @@ class _CreatePodcastPageState extends State<CreatePodcastPage> {
                                           final podcastId = await context
                                               .read<PodcastProvider>()
                                               .createPodcast(
-                                                title: _titleController.text,
-                                                description:
-                                                    _descriptionController.text,
-                                                audioUrl:
-                                                    _audioUrlController.text,
-                                                imageUrl:
-                                                    _imageUrlController.text,
+                                                topic: _topicController.text,
                                                 isPublic: _isPublic,
                                               );
 
@@ -374,16 +368,14 @@ class _CreatePodcastPageState extends State<CreatePodcastPage> {
                                             });
 
                                             if (podcastId != null) {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    'Podcast created successfully!',
-                                                  ),
-                                                  duration: Duration(
-                                                    seconds: 2,
-                                                  ),
+                                              showTopSnackBar(
+                                                Overlay.of(context),
+                                                const CustomSnackBar.success(
+                                                  message:
+                                                      'Podcast generation started',
+                                                ),
+                                                displayDuration: const Duration(
+                                                  seconds: 2,
                                                 ),
                                               );
                                               Navigator.of(context).pop();
@@ -392,16 +384,14 @@ class _CreatePodcastPageState extends State<CreatePodcastPage> {
                                                   .read<PodcastProvider>()
                                                   .fetchUserPodcasts();
                                             } else {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    'Failed to create podcast',
-                                                  ),
-                                                  duration: Duration(
-                                                    seconds: 2,
-                                                  ),
+                                              showTopSnackBar(
+                                                Overlay.of(context),
+                                                const CustomSnackBar.error(
+                                                  message:
+                                                      'Failed to create podcast',
+                                                ),
+                                                displayDuration: const Duration(
+                                                  seconds: 2,
                                                 ),
                                               );
                                             }
@@ -412,14 +402,13 @@ class _CreatePodcastPageState extends State<CreatePodcastPage> {
                                           setState(() {
                                             _isLoading = false;
                                           });
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text('Error: $e'),
-                                              duration: const Duration(
-                                                seconds: 2,
-                                              ),
+                                          showTopSnackBar(
+                                            Overlay.of(context),
+                                            CustomSnackBar.error(
+                                              message: 'Error: $e',
+                                            ),
+                                            displayDuration: const Duration(
+                                              seconds: 2,
                                             ),
                                           );
                                         }
