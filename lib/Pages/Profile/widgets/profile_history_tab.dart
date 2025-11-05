@@ -168,7 +168,56 @@ class _ProfileHistoryTabState extends State<ProfileHistoryTab> {
     dynamic entry,
     ThemeData theme,
   ) {
-    final readTime = DateFormat('MMM d, y ').add_jm().format(entry.readAt);
+    // `entry.readAt` is stored in UTC in the DB. Some timestamps may be stored
+    // without timezone markers which causes `DateTime.parse` to treat them as
+    // local. To ensure we always treat the stored timestamp as UTC and then
+    // convert to IST (UTC+5:30), build a UTC DateTime from the parsed
+    // components (ignoring any local timezone assumptions).
+    DateTime buildUtcFrom(dynamic value) {
+      try {
+        if (value is DateTime) {
+          // Use the component fields but force UTC so we treat the stored
+          // components as UTC values.
+          return DateTime.utc(
+            value.year,
+            value.month,
+            value.day,
+            value.hour,
+            value.minute,
+            value.second,
+            value.millisecond,
+            value.microsecond,
+          );
+        }
+
+        final s = value?.toString() ?? '';
+        // Try to parse; if parsing succeeds, take the components and make a
+        // UTC DateTime from them (this avoids local timezone conversions).
+        final parsed = DateTime.tryParse(s);
+        if (parsed != null) {
+          return DateTime.utc(
+            parsed.year,
+            parsed.month,
+            parsed.day,
+            parsed.hour,
+            parsed.minute,
+            parsed.second,
+            parsed.millisecond,
+            parsed.microsecond,
+          );
+        }
+      } catch (_) {}
+
+      // Fallback to current time in UTC if parsing fails
+      return DateTime.now().toUtc();
+    }
+
+    final DateTime readAtUtc = buildUtcFrom(entry.readAt);
+    // IST is UTC+5:30
+    const Duration istOffset = Duration(hours: 5, minutes: 30);
+    final DateTime readAtLocal = readAtUtc.add(istOffset);
+
+    final readTime = DateFormat('MMM d, y ').add_jm().format(readAtLocal);
 
     // Build a NewsArticle from the article_details if available
     NewsArticle? article;

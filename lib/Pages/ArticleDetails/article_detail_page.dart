@@ -540,7 +540,11 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
             child: Consumer<AuthProvider>(
               builder: (context, authProvider, child) {
                 if (authProvider.isAuthenticated) {
-                  return TTSControlsWidget(textToRead: widget.article.text);
+                  // If AI analysis mode is active and a summary is available, prefer the summary for TTS
+                  final textForTts = (isAnalysisVisible && summary != null)
+                      ? summary
+                      : widget.article.text;
+                  return TTSControlsWidget(textToRead: textForTts);
                 }
                 return const SizedBox.shrink(); // Don't show TTS controls for non-authenticated users
               },
