@@ -3,9 +3,9 @@ import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:finalyear/utils/request_handler.dart';
-import 'package:finalyear/utils/uri_utils.dart';
-import 'package:finalyear/constants/constants.dart';
+import 'package:Nexora/utils/request_handler.dart';
+import 'package:Nexora/utils/uri_utils.dart';
+import 'package:Nexora/constants/constants.dart';
 import '../Models/read_history_model.dart';
 
 class HistoryProvider with ChangeNotifier {

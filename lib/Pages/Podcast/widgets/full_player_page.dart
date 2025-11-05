@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:finalyear/Providers/podcast_provider.dart';
-import 'package:finalyear/Models/podcast_model.dart';
-import 'package:finalyear/Pages/Podcast/widgets/seek_bar.dart';
+import 'package:Nexora/Providers/podcast_provider.dart';
+import 'package:Nexora/Models/podcast_model.dart';
+import 'package:Nexora/Pages/Podcast/widgets/seek_bar.dart';
 
 class FullPlayerPage extends StatelessWidget {
   final Podcast podcast;

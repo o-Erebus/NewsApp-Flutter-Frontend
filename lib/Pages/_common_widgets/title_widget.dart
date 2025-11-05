@@ -41,7 +41,7 @@ class CommonTitleWidget extends StatelessWidget {
       final emoji = parts['emoji'] ?? '';
 
       return Padding(
-        padding: const EdgeInsets.only(right: 12.0, top: 16.0, bottom: 16),
+        padding: const EdgeInsets.only(top: 16.0, bottom: 16),
         child: Row(
           children: [
             // Title and emoji on right
@@ -67,12 +67,12 @@ class CommonTitleWidget extends StatelessWidget {
             if (logoAssetPath.isNotEmpty)
               Image.asset(
                 logoAssetPath,
-                width: 20,
-                height: 20,
+                width: 50,
+                height: 50,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    width: 20,
-                    height: 20,
+                    width: 50,
+                    height: 50,
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(4),

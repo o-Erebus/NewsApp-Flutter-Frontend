@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io'; // For HttpException
-import 'package:finalyear/constants/constants.dart';
+import 'package:Nexora/constants/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import '../Models/news_article.dart';
 import '../utils/request_handler.dart';
 import '../utils/uri_utils.dart';
 import 'dart:async'; // For TimeoutException
-import 'package:finalyear/utils/cache_handler.dart';
-import 'package:finalyear/Models/news_cache_models.dart';
+import 'package:Nexora/utils/cache_handler.dart';
+import 'package:Nexora/Models/news_cache_models.dart';
 
 class NewsProvider with ChangeNotifier {
   static final _pageSize = int.parse(

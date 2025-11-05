@@ -1,13 +1,13 @@
 // lib/screens/home_page.dart
 import 'dart:async';
 
-import 'package:finalyear/Pages/Home/widgets/carousel_widget.dart';
-import 'package:finalyear/Pages/Home/widgets/news_list_item_widget.dart';
-import 'package:finalyear/Pages/Home/widgets/category_pills_widget.dart';
-import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/news_list_item_skeleton_widget.dart';
-import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/min_display_time_wrapper.dart';
-import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/heading_skeleton_widget.dart';
-import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/category_pills_skeleton_widget.dart';
+import 'package:Nexora/Pages/Home/widgets/carousel_widget.dart';
+import 'package:Nexora/Pages/Home/widgets/news_list_item_widget.dart';
+import 'package:Nexora/Pages/Home/widgets/category_pills_widget.dart';
+import 'package:Nexora/Pages/_common_widgets/skeleton_loaders/news_list_item_skeleton_widget.dart';
+import 'package:Nexora/Pages/_common_widgets/skeleton_loaders/min_display_time_wrapper.dart';
+import 'package:Nexora/Pages/_common_widgets/skeleton_loaders/heading_skeleton_widget.dart';
+import 'package:Nexora/Pages/_common_widgets/skeleton_loaders/category_pills_skeleton_widget.dart';
 import 'package:flutter/material.dart';
 import 'dart:async'; // For unawaited
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
@@ -89,7 +89,7 @@ class _HomePageState extends State<HomePage> {
           slivers: <Widget>[
             CommonTitleWidget(
               title: _getGreetingTitle(),
-              logoAssetPath: "logoAssetPath",
+              logoAssetPath: "assets/appIcon.png",
               variant: 1,
             ),
             // START: Put your Carousel Widget here (remains the same or similar)

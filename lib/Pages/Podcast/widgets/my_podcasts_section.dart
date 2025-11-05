@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:finalyear/Providers/podcast_provider.dart';
-import 'package:finalyear/Pages/Podcast/widgets/full_player_page.dart';
+import 'package:Nexora/Providers/podcast_provider.dart';
+import 'package:Nexora/Pages/Podcast/widgets/full_player_page.dart';
 import 'create_podcast_page.dart';
 import '../../../Models/podcast_model.dart';
 import 'package:page_transition/page_transition.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:finalyear/Models/podcast_model.dart';
+import 'package:Nexora/Models/podcast_model.dart';
 
 /// Shared podcast row used by Trending and MyPodcasts sections.
 /// Supports either an index badge (gradient) or an image thumbnail.

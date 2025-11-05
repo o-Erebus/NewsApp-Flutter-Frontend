@@ -1,27 +1,27 @@
 import 'dart:collection';
-import 'package:finalyear/Models/news_cache_models.dart';
+import 'package:Nexora/Models/news_cache_models.dart';
 
 /// A generic cache handler that can work with any model type
-/// 
+///
 /// This class provides caching functionality with:
 /// - LRU eviction policy
 /// - Time-based expiration
 /// - Configurable cache size and expiration time
 class CacheHandler<T> {
   final CacheConfig config;
-  
+
   // Cache storage with timestamps
   final LinkedHashMap<String, CachedPage<T>> _cache =
       LinkedHashMap<String, CachedPage<T>>();
   final Map<String, DateTime> _lastFetch = {};
 
   /// Create a new cache handler with the specified configuration
-  /// 
+  ///
   /// [config] The cache configuration (optional, uses default values if not provided)
   CacheHandler({CacheConfig? config}) : config = config ?? CacheConfig();
 
   /// Cache a page of items with the specified key
-  /// 
+  ///
   /// [key] The cache key
   /// [pageKey] The page number
   /// [items] The list of items to cache
@@ -54,15 +54,12 @@ class CacheHandler<T> {
   }
 
   /// Check if a specific page is cached and not expired
-  /// 
+  ///
   /// [key] The cache key
   /// [pageKey] The page number to check
-  /// 
+  ///
   /// Returns true if the page is cached and not expired, false otherwise
-  bool isPageCached({
-    required String key,
-    required int pageKey,
-  }) {
+  bool isPageCached({required String key, required int pageKey}) {
     final fullKey = '$key:$pageKey';
     final cachedPage = _cache[fullKey];
     if (cachedPage == null) return false;
@@ -80,15 +77,12 @@ class CacheHandler<T> {
   }
 
   /// Get cached page if available and not expired
-  /// 
+  ///
   /// [key] The cache key
   /// [pageKey] The page number to get
-  /// 
+  ///
   /// Returns the cached page if available and not expired, null otherwise
-  CachedPage<T>? getCachedPage({
-    required String key,
-    required int pageKey,
-  }) {
+  CachedPage<T>? getCachedPage({required String key, required int pageKey}) {
     final fullKey = '$key:$pageKey';
     final cachedPage = _cache[fullKey];
     if (cachedPage == null) return null;
@@ -106,7 +100,7 @@ class CacheHandler<T> {
   }
 
   /// Clear all cached data for a specific key
-  /// 
+  ///
   /// [key] The cache key to clear
   void clearCacheForKey(String key) {
     // Remove all entries with this key prefix
@@ -124,9 +118,9 @@ class CacheHandler<T> {
   }
 
   /// Get the last fetch time for a specific key
-  /// 
+  ///
   /// [key] The cache key to get last fetch time for
-  /// 
+  ///
   /// Returns the last fetch time, or null if the key has never been fetched
   DateTime? getLastFetch(String key) {
     return _lastFetch[key];

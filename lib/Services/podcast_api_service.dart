@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:finalyear/Models/podcast_model.dart';
-import 'package:finalyear/constants/constants.dart';
-import 'package:finalyear/utils/request_handler.dart';
+import 'package:Nexora/Models/podcast_model.dart';
+import 'package:Nexora/constants/constants.dart';
+import 'package:Nexora/utils/request_handler.dart';
 import 'dart:developer' as developer;
 
 class PodcastApiService {

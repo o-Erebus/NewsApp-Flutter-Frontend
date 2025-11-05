@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:finalyear/Providers/podcast_provider.dart';
-import 'package:finalyear/Providers/auth_provider.dart';
+import 'package:Nexora/Providers/podcast_provider.dart';
+import 'package:Nexora/Providers/auth_provider.dart';
 
 class MyPodcastsPage extends StatefulWidget {
   const MyPodcastsPage({super.key});

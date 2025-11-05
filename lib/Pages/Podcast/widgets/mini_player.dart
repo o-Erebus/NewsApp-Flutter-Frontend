@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:page_transition/page_transition.dart';
-import 'package:finalyear/Providers/podcast_provider.dart';
+import 'package:Nexora/Providers/podcast_provider.dart';
 import 'full_player_page.dart';
 import 'seek_bar.dart';
 

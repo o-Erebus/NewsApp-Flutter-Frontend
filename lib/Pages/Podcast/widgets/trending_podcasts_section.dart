@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:finalyear/Providers/podcast_provider.dart';
+import 'package:Nexora/Providers/podcast_provider.dart';
 import 'trending_podcast_card.dart';
 
 class TrendingPodcastsSection extends StatelessWidget {

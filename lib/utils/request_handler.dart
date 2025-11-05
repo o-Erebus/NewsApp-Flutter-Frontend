@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:finalyear/constants/constants.dart';
+import 'package:Nexora/constants/constants.dart';
 
 class RequestHandler {
   static final RequestHandler _instance = RequestHandler._internal();

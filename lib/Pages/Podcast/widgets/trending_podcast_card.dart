@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:page_transition/page_transition.dart';
-import 'package:finalyear/Providers/podcast_provider.dart';
-import 'package:finalyear/Models/podcast_model.dart';
-import 'package:finalyear/Pages/Podcast/widgets/full_player_page.dart';
-import 'package:finalyear/Pages/Podcast/widgets/podcast_card.dart';
+import 'package:Nexora/Providers/podcast_provider.dart';
+import 'package:Nexora/Models/podcast_model.dart';
+import 'package:Nexora/Pages/Podcast/widgets/full_player_page.dart';
+import 'package:Nexora/Pages/Podcast/widgets/podcast_card.dart';
 
 class TrendingPodcastCard extends StatelessWidget {
   final Podcast podcast;

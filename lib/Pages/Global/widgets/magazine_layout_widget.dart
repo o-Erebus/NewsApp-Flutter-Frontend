@@ -1,7 +1,7 @@
 // lib/Pages/Global/widgets/magazine_layout_widget.dart
-import 'package:finalyear/Pages/Global/widgets/magazine_feature_item_widget.dart';
-import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/magazine_skeleton_widgets.dart';
-import 'package:finalyear/Pages/_common_widgets/skeleton_loaders/min_display_time_wrapper.dart';
+import 'package:Nexora/Pages/Global/widgets/magazine_feature_item_widget.dart';
+import 'package:Nexora/Pages/_common_widgets/skeleton_loaders/magazine_skeleton_widgets.dart';
+import 'package:Nexora/Pages/_common_widgets/skeleton_loaders/min_display_time_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
@@ -30,7 +30,7 @@ class MagazineLayoutWidget extends StatelessWidget {
       },
       child: CustomScrollView(
         slivers: <Widget>[
-          const CommonTitleWidget(title: "Global Page", variant: 1),
+          const CommonTitleWidget(title: "Global News", variant: 1),
           PagingListener(
             controller: newsProvider.globalPagingController,
             builder: (context, state, fetchNextPage) =>

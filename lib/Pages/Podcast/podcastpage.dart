@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:finalyear/Providers/navigation_provider.dart';
+import 'package:Nexora/Providers/navigation_provider.dart';
 
-import 'package:finalyear/Providers/podcast_provider.dart';
+import 'package:Nexora/Providers/podcast_provider.dart';
 import 'widgets/mini_player.dart';
 import 'widgets/featured_podcast_section.dart';
 import 'widgets/trending_podcasts_section.dart';
