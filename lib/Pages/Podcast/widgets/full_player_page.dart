@@ -56,21 +56,21 @@ class FullPlayerPage extends StatelessWidget {
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
-                          GestureDetector(
-                            onTap: () {},
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: colorScheme.surfaceContainerHigh,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              padding: const EdgeInsets.all(10),
-                              child: Icon(
-                                Icons.more_vert,
-                                color: colorScheme.onSurface,
-                                size: 24,
-                              ),
-                            ),
-                          ),
+                          // GestureDetector(
+                          //   onTap: () {},
+                          //   child: Container(
+                          //     decoration: BoxDecoration(
+                          //       color: colorScheme.surfaceContainerHigh,
+                          //       borderRadius: BorderRadius.circular(12),
+                          //     ),
+                          //     padding: const EdgeInsets.all(10),
+                          //     child: Icon(
+                          //       Icons.more_vert,
+                          //       color: colorScheme.onSurface,
+                          //       size: 24,
+                          //     ),
+                          //   ),
+                          // ),
                         ],
                       ),
                       const SizedBox(height: 40),
