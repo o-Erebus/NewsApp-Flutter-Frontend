@@ -56,21 +56,8 @@ class FullPlayerPage extends StatelessWidget {
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
-                          // GestureDetector(
-                          //   onTap: () {},
-                          //   child: Container(
-                          //     decoration: BoxDecoration(
-                          //       color: colorScheme.surfaceContainerHigh,
-                          //       borderRadius: BorderRadius.circular(12),
-                          //     ),
-                          //     padding: const EdgeInsets.all(10),
-                          //     child: Icon(
-                          //       Icons.more_vert,
-                          //       color: colorScheme.onSurface,
-                          //       size: 24,
-                          //     ),
-                          //   ),
-                          // ),
+                          // keep an empty sized box here so the title stays centered
+                          const SizedBox(width: 48),
                         ],
                       ),
                       const SizedBox(height: 40),
