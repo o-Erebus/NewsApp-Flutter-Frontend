@@ -340,7 +340,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                                   decoration: BoxDecoration(
                                                     color: theme
                                                         .colorScheme
-                                                        .surfaceVariant,
+                                                        .surfaceContainerHighest,
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                           8,
@@ -434,7 +434,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                                   decoration: BoxDecoration(
                                                     color: theme
                                                         .colorScheme
-                                                        .surfaceVariant,
+                                                        .surfaceContainerHighest,
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                           8,

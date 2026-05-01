@@ -266,13 +266,13 @@ class NewsProvider with ChangeNotifier {
       }
     } on SocketException catch (e) {
       // Handle network connectivity issues
-      throw e;
+      rethrow;
     } on TimeoutException catch (e) {
       // Handle request timeouts
-      throw e;
+      rethrow;
     } catch (error) {
       // Handle all other errors
-      throw error;
+      rethrow;
     }
   }
 
@@ -347,13 +347,13 @@ class NewsProvider with ChangeNotifier {
       }
     } on SocketException catch (e) {
       // Handle network connectivity issues
-      throw e;
+      rethrow;
     } on TimeoutException catch (e) {
       // Handle request timeouts
-      throw e;
+      rethrow;
     } catch (error) {
       // Handle all other errors
-      throw error;
+      rethrow;
     }
   }
 
@@ -426,9 +426,9 @@ class NewsProvider with ChangeNotifier {
   /// Clear all caches for pull-to-refresh functionality
   void clearAllCaches() {
     // Clear all category caches
-    _categoryCacheHandlers.values.forEach((cacheHandler) {
+    for (var cacheHandler in _categoryCacheHandlers.values) {
       cacheHandler.clearAllCache();
-    });
+    }
 
     // Clear global cache
     _globalCacheHandler.clearAllCache();
@@ -439,6 +439,7 @@ class NewsProvider with ChangeNotifier {
     developer.log('All caches cleared');
   }
 
+  @override
   void dispose() {
     _pagingController.dispose();
     globalPagingController.dispose();

@@ -74,6 +74,7 @@ class MagazineLayoutWidget extends StatelessWidget {
                     ),
                     firstPageProgressIndicatorBuilder: (_) =>
                         const MinDisplayTimeWrapper(
+                          minDisplayTime: Duration(milliseconds: 500),
                           child: Column(
                             children: [
                               MagazineFeaturedItemSkeleton(),
@@ -82,13 +83,12 @@ class MagazineLayoutWidget extends StatelessWidget {
                               MagazineNewsItemSkeleton(),
                             ],
                           ),
-                          minDisplayTime: Duration(milliseconds: 500),
                         ),
                     newPageProgressIndicatorBuilder: (_) => const Padding(
                       padding: EdgeInsets.symmetric(vertical: 16.0),
                       child: MinDisplayTimeWrapper(
-                        child: MagazineNewsItemSkeleton(),
                         minDisplayTime: Duration(milliseconds: 500),
+                        child: MagazineNewsItemSkeleton(),
                       ),
                     ),
                     noItemsFoundIndicatorBuilder: (_) =>

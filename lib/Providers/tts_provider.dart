@@ -7,7 +7,7 @@ import 'dart:developer' as developer;
 class TTSProvider with ChangeNotifier {
   late FlutterTts _flutterTts;
   bool _isPlaying = false;
-  bool _isMaleVoice = true;
+  final bool _isMaleVoice = true;
   List<dynamic> _availableVoices = [];
   int _currentVoiceIndex = 0;
   double _speed = 0.5;
@@ -22,7 +22,7 @@ class TTSProvider with ChangeNotifier {
   // Tracks the start of the current word within the CURRENT utterance being spoken
   int _currentUtteranceWordStart = 0;
   int _pausePosition = 0; // For Android pause position tracking
-  bool _isAndroid = Platform.isAndroid; // Platform detection
+  final bool _isAndroid = Platform.isAndroid; // Platform detection
 
   final List<double> speedOptions = [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0];
   final List<double> uiSpeedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
@@ -135,7 +135,7 @@ class TTSProvider with ChangeNotifier {
       List<dynamic> engines = await _flutterTts.getEngines;
       developer.log("Available Engines: $engines");
       engines.forEach(print);
-      if (voices != null && voices.isNotEmpty) {
+      if (voices.isNotEmpty) {
         // Filter voices for en-IN and en-US locales with high quality
         // Be more permissive with the filtering - if no voices match our strict criteria, use all voices
         List<dynamic> filteredVoices = voices.where((voice) {
@@ -613,7 +613,7 @@ class TTSProvider with ChangeNotifier {
   /// Gets the progress of chunked text processing as a formatted string
   String getChunkProgressText() {
     if (_textChunks.isEmpty) return "0/0";
-    return "${_currentChunkIndex}/${_textChunks.length}";
+    return "$_currentChunkIndex/${_textChunks.length}";
   }
 
   /// Gets the overall progress of text processing (chunked or non-chunked) as a percentage
@@ -721,6 +721,7 @@ class TTSProvider with ChangeNotifier {
     developer.log('TTSProvider: reset() completed');
   }
 
+  @override
   void dispose() {
     developer.log('TTSProvider: dispose() called');
     _flutterTts.stop();

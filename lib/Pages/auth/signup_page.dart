@@ -9,7 +9,7 @@ import '../../Providers/auth_provider.dart';
 class SignupPage extends StatefulWidget {
   final VoidCallback onSwitchToLogin;
 
-  const SignupPage({Key? key, required this.onSwitchToLogin}) : super(key: key);
+  const SignupPage({super.key, required this.onSwitchToLogin});
 
   @override
   State<SignupPage> createState() => _SignupPageState();

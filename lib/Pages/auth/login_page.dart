@@ -10,7 +10,7 @@ import '../../Providers/news_provider.dart';
 class LoginPage extends StatefulWidget {
   final VoidCallback onSwitchToSignup;
 
-  const LoginPage({Key? key, required this.onSwitchToSignup}) : super(key: key);
+  const LoginPage({super.key, required this.onSwitchToSignup});
 
   @override
   State<LoginPage> createState() => _LoginPageState();

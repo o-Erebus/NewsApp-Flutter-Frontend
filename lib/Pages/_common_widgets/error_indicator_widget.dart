@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../../Providers/news_provider.dart';
 
 class ErrorIndicatorWidget extends StatelessWidget {
   final dynamic error;

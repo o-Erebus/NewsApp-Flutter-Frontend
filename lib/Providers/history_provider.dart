@@ -12,11 +12,11 @@ class HistoryProvider with ChangeNotifier {
   final RequestHandler _requestHandler = RequestHandler();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  List<ReadHistoryEntry> _readHistory = [];
+  final List<ReadHistoryEntry> _readHistory = [];
   bool _isLoading = false;
   bool _hasMore = true;
   int _currentPage = 1;
-  int _pageSize = 20;
+  final int _pageSize = 20;
   String? _error;
 
   // Getters

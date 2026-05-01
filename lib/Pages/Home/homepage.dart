@@ -98,8 +98,8 @@ class _HomePageState extends State<HomePage> {
             // Show heading skeleton when loading, otherwise show the actual heading and mood button
             _isLoading
                 ? const MinDisplayTimeWrapper(
-                    child: HeadingSkeletonWidget(),
                     minDisplayTime: Duration(milliseconds: 2500),
+                    child: HeadingSkeletonWidget(),
                   )
                 : SliverToBoxAdapter(
                     child: Padding(
@@ -211,8 +211,8 @@ class _HomePageState extends State<HomePage> {
             // Show category pills skeleton when loading, otherwise show the actual category pills
             _isLoading
                 ? const MinDisplayTimeWrapper(
-                    child: CategoryPillsSkeletonWidget(),
                     minDisplayTime: Duration(milliseconds: 2500),
+                    child: CategoryPillsSkeletonWidget(),
                   )
                 : CategoryPillsWidget(
                     onCategorySelected: (category) {
@@ -247,13 +247,13 @@ class _HomePageState extends State<HomePage> {
                       ),
                       firstPageProgressIndicatorBuilder: (_) =>
                           const MinDisplayTimeWrapper(
-                            child: NewsListItemSkeletonWidget(),
                             minDisplayTime: Duration(milliseconds: 500),
+                            child: NewsListItemSkeletonWidget(),
                           ),
                       newPageProgressIndicatorBuilder: (_) =>
                           const MinDisplayTimeWrapper(
-                            child: NewsListItemSkeletonWidget(),
                             minDisplayTime: Duration(milliseconds: 500),
+                            child: NewsListItemSkeletonWidget(),
                           ),
                       noItemsFoundIndicatorBuilder: (_) =>
                           NoArticlesIndicatorWidget(theme: theme),

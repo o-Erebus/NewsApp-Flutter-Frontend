@@ -319,7 +319,7 @@ class _GNavAnimatedButtonState extends State<GNavAnimatedButton>
 //==============================================================================
 
 class AuthModalSheet extends StatefulWidget {
-  const AuthModalSheet({Key? key}) : super(key: key);
+  const AuthModalSheet({super.key});
 
   @override
   State<AuthModalSheet> createState() => _AuthModalSheetState();

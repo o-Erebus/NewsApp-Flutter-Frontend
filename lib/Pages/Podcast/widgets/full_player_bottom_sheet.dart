@@ -8,7 +8,7 @@ class FullPlayerBottomSheet extends StatelessWidget {
   final Podcast podcast;
   final PodcastProvider podcastProvider;
 
-  const FullPlayerBottomSheet({
+  const FullPlayerBottomSheet({super.key, 
     required this.podcast,
     required this.podcastProvider,
   });

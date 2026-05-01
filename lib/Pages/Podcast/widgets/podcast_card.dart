@@ -12,13 +12,13 @@ class PodcastCard extends StatelessWidget {
   final Widget? trailing; // trailing widget (play, edit, etc.)
 
   const PodcastCard({
-    Key? key,
+    super.key,
     required this.podcast,
     this.index,
     this.showImage = false,
     this.onTap,
     this.trailing,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

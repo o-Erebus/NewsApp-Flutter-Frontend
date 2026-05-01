@@ -20,7 +20,7 @@ class CarouselWidget extends StatefulWidget {
 
 class _CarouselWidgetState extends State<CarouselWidget> {
   bool _isLoading = true;
-  bool _isRefreshing = false;
+  final bool _isRefreshing = false;
 
  @override
   void initState() {
@@ -44,8 +44,8 @@ class _CarouselWidgetState extends State<CarouselWidget> {
     // Show loading indicator while fetching or if there are no articles
     if (_isLoading || isFetchingFeatured || featuredArticles.isEmpty) {
       return const MinDisplayTimeWrapper(
-        child: CarouselSkeletonWidget(),
         minDisplayTime: Duration(milliseconds: 500),
+        child: CarouselSkeletonWidget(),
       );
     }
 

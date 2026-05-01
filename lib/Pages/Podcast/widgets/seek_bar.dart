@@ -8,11 +8,11 @@ class SeekBar extends StatefulWidget {
   final ValueChanged<double>? onSeek;
 
   const SeekBar({
-    Key? key,
+    super.key,
     required this.current,
     required this.total,
     this.onSeek,
-  }) : super(key: key);
+  });
 
   @override
   State<SeekBar> createState() => _SeekBarState();
@@ -24,7 +24,7 @@ class _SeekBarState extends State<SeekBar> {
 
   String _format(double seconds) {
     final d = Duration(milliseconds: (seconds * 1000).toInt());
-    final twoDigits = (int n) => n.toString().padLeft(2, '0');
+    twoDigits(int n) => n.toString().padLeft(2, '0');
     final mm = twoDigits(d.inMinutes.remainder(60));
     final ss = twoDigits(d.inSeconds.remainder(60));
     final hh = d.inHours;
